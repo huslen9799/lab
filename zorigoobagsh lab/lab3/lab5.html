@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+     let utga 
+     let uldegdel =0;
+        while (utga != "123") {
+            utga = prompt("та нууц үгээ оруулна уу...");
+            if(utga=="123")
+            while (true){
+        let uildel = prompt(
+            " 1. Орлого оруулах. \n 2. Зарлага гаргах \n 3. Үлдэгдэл харах \n 4. Гарах"
+        );
+        if (uildel ==1){
+            orlogo();
+        }else if(uildel==2){
+            zarlaga();
+        }else if(uildel==3){
+            alert("Таны дансны үлдэгдэл :" + uldegdel );
+        }else if(uildel==4){
+            break;
+        } 
+    }
+        }
+        function orlogo(){
+            let orDun = parseInt(prompt("Орлого оруулах мөнгөн дүнгээ оруулна уу..."));
+            uldegdel += orDun;
+        }
+        function zarlaga(){
+            let gDun = parseInt(prompt("Зарлага гаргах мөнгөн дүнгээ оруулна уу..."));
+           uldegdel -= gDun
+            if(uldegdel<=gDun){
+                alert("таны дансны үлдэгдэл хүрэлцэхгүй байна..."  );
+                uldegdel+=gDun
+            } 
+            }
+        
+    </script>
+</body>
+</html>

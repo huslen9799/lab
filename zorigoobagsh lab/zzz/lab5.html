@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        let a=5;
+        let b = [1,9,8,4,5,6,1,9,8,2];
+        let c=[1,2,3,4,5];
+        b.push("сүүл"); //массивийн төгсгөлд элемэнт нэмнэ.
+        alert(b)
+        b.pop();//хамгийн сүүлийн элемэнтийг хасна
+      alert(b)
+        b.unshift("string +++"); //эхэнд элемэнт нэмнэ
+        alert(b)
+        b.shift(); //эхний элемэнтийг хасна
+        alert(b)
+        alert("IndexOf жишээ : 8 ийг хайсан : " + b.indexOf(8)); 
+        alert("lastIndexOf жишээ : 8 ийг хайсан : " + b.lastIndexOf(8)); 
+        alert("splice жишээ :" +  b.splice(2,4)); 
+        alert("slice жишээ :" +  b.slice(2,6)); 
+        alert(b);
+
+
+        
+    </script>
+</body>
+</html>

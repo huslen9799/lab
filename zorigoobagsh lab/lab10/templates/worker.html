@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <title>Ажилтнууд</title>
+</head>
+<body>
+    <h1>Ажилтны мэдээлэл</h1>
+    <a href="{{ url_for('add_worker') }}">➕ Ажилтан нэмэх</a>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>ID</th>
+            <th>Нэр</th>
+            <th>Салбар</th>
+        </tr>
+        {% for w in workers %}
+        <tr>
+            <td>{{ w[0] }}</td>
+            <td>{{ w[1] }}</td>
+            <td>{{ w[2] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

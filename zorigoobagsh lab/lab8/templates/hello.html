@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <title>Hello from Flask</title>
+     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<style>
+    #myDiv {
+      width: 300px;
+      height: 300px;
+      background-color: chocolate;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: black;
+      line-height: 300px;
+      border: 1px solid #000;
+      margin-top: 15px;
+    }
+</style>
+<body style="text-align:center; font-family:Arial;">
+    {% if name %}
+        <h1>Hello, {{ name }}!</h1>
+    {% else %}
+        <h1>Hello, World!</h1>
+    {% endif %}
+    <p>This is rendered using a Flask Template.</p>
+
+ 
+    <img src="{{ url_for('static', filename='flask_logo.png') }}" alt="Flask Logo" width="200">
+
+    <p><button><a class="button" href="{{ url_for('help_page') }}">Go to Help Page</a></button>
+         <h2>CSS ба JavaScript ашиглах</h2>
+
+  <label for="colorSelect">Өнгө сонгох:</label>
+  <select id="colorSelect">
+    <option value="chocolate">Улаан хүрэн</option>
+    <option value="red">Улаан</option>
+    <option value="yellow">Шар</option>
+  </select>
+
+  <button onclick="change_color()">Өнгө солих</button>
+
+  <div id="myDiv">Энэ бол өнгөний талбар</div>
+
+  <script>
+    function change_color() {
+      let selectedColor = document.getElementById("colorSelect").value;
+      let box = document.getElementById("myDiv");
+
+      box.style.backgroundColor = selectedColor;
+
+      if (selectedColor === "chocolate") {
+        box.textContent = "Энэ бол Улаан хүрэн өнгө";
+      } else if (selectedColor === "red") {
+        box.textContent = "Энэ бол Улаан өнгө";
+      } else if (selectedColor === "yellow") {
+        box.textContent = "Энэ бол Шар өнгө";
+      }
+    }
+    </script>
+</body>
+</html>

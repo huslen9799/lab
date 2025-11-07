@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% extends "base.html" %}
+{% block content %}
+<h1>Hello, this is the Index Page!</h1>
+<p>Use the navigation bar above to go to other pages.</p>
+<p>Try <a href="{{ url_for('go_to_help') }}">Redirect Example</a>.</p>
+{% endblock %}
+
+</body>
+</html>

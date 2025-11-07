@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <title>Help Page</title>
+     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body style="text-align:center; font-family:Arial;">
+    <h1>Welcome to the Help Page</h1>
+    <p>Here you can find information about how to use this Flask app.</p>
+
+    <img src="{{ url_for('static', filename='flask_logo.png') }}" alt="Help Image" width="250">
+
+ <p>   <button>    <a href="{{ url_for('hello') }}">Back to Hello Page</a></button></p>
+</body>
+</html>

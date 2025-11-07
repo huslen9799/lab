@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <title>Өнгө солих жишээ</title>
+  <style>
+    #myDiv {
+      width: 300px;
+      height: 300px;
+      background-color: chocolate;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: black;
+      line-height: 300px;
+      border: 1px solid #000;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h2>CSS ба JavaScript ашиглах</h2>
+
+  <label for="colorSelect">Өнгө сонгох:</label>
+  <select id="colorSelect">
+    <option value="chocolate">Улаан хүрэн</option>
+    <option value="red">Улаан</option>
+    <option value="yellow">Шар</option>
+  </select>
+
+  <button onclick="change_color()">Өнгө солих</button>
+
+  <div id="myDiv">Энэ бол өнгөний талбар</div>
+
+  <script>
+    function change_color() {
+      let selectedColor = document.getElementById("colorSelect").value;
+      let box = document.getElementById("myDiv");
+
+      box.style.backgroundColor = selectedColor;
+
+      if (selectedColor === "chocolate") {
+        box.textContent = "Энэ бол Улаан хүрэн өнгө";
+      } else if (selectedColor === "red") {
+        box.textContent = "Энэ бол Улаан өнгө";
+      } else if (selectedColor === "yellow") {
+        box.textContent = "Энэ бол Шар өнгө";
+      }
+    }
+  </script>
+</body>
+</html>
