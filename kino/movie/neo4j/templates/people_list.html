@@ -43,7 +43,8 @@
                             <img src="{{ url_for('static', filename='people/' + (person.get('image') or 'default.jpg')) }}" alt="{{ person.name }}">
                         </div>
                         <figcaption class="info-wrap">
-                            <a href="#" class="title">{{ person.name }}</a>
+                            <a href="{{ url_for('person_detail', name=person.get('name')) }}" class="title">{{ person.get('name') }}</a>
+
                             {% if person.birthYear %} <small>({{ person.birthYear }})</small> {% endif %}
                         </figcaption>
                     </figure>

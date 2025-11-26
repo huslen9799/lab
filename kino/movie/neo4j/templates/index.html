@@ -86,9 +86,12 @@
                 <header class="card-header"><h6 class="title">Киноны нэрээр хайх</h6></header>
                 <div class="card-body">
                     <form method="get" action="{{ url_for('index') }}">
-                        <input class="form-control mb-2" type="text" name="txtMovieTitle" placeholder="Киноны нэр" value="{{ query }}">
-                        <button class="btn btn-block btn-primary">Хайх</button>
-                    </form>
+    <input type="text" name="txtMovieTitle" placeholder="Киноны нэр" value="{{ query }}">
+    <input type="number" name="year_from" placeholder="Эхний он" value="{{ year_from }}">
+    <input type="number" name="year_to" placeholder="Сүүлийн он" value="{{ year_to }}">
+    <button type="submit" class="btn btn-primary">Хайх</button>
+</form>
+
                 </div>
             </article>
         </div>

@@ -81,6 +81,15 @@
         {% endfor %}
     </ul>
     {% endif %}
+{% if session.get('role') == 'admin' %}
+<div>
+    <a href="{{ url_for('edit_movie', title=movie.title) }}" class="btn btn-warning btn-sm">Кино засах</a>
+    <form action="{{ url_for('delete_movie', title=movie.title) }}" method="POST" style="display:inline;">
+        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Энэ киног устгах уу?');">Устгах</button>
+    </form>
+</div>
+
+{% endif %}
 
     {% if session.get('username') and session.get('role') != 'guest' %}
     <hr>

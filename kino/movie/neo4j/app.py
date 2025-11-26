@@ -9,7 +9,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
-app.secret_key = 'super_secret_unique_key_here'
+app.secret_key = os.environ.get('FLASK_SECRET', 'dev-secret-change-me')
 
 # Static folders
 MOVIE_IMG = os.path.join('static', 'movies')
@@ -39,17 +39,35 @@ USERS = {
 @app.route("/", methods=['GET'])
 def index():
     query_text = request.args.get('txtMovieTitle', '').strip()
+    year_from = request.args.get('year_from', '').strip()
+    year_to = request.args.get('year_to', '').strip()
+
+    query = "MATCH (m:Movie) WHERE 1=1"
+
+    # Нэрээр шүүх
     if query_text:
-        query = f"""
-        MATCH (m:Movie)
-        WHERE toLower(m.title) CONTAINS toLower('{query_text.replace("'", "\\'")}')
-        RETURN m.title AS title, m.released AS year, m.image AS image
-        LIMIT 20
-        """
-    else:
-        query = "MATCH (m:Movie) RETURN m.title AS title, m.released AS year, m.image AS image LIMIT 10"
+        safe_text = query_text.replace("'", "\\'")
+        query += f" AND toLower(m.title) CONTAINS toLower('{safe_text}')"
+
+    # Он дээр шүүх
+    if year_from.isdigit():
+        query += f" AND m.released >= {year_from}"
+    if year_to.isdigit():
+        query += f" AND m.released <= {year_to}"
+
+    query += " RETURN m.title AS title, m.released AS year, m.image AS image ORDER BY m.released DESC LIMIT 50"
+
     movies = conn.query(query)
-    return render_template("index.html", movies=movies, query=query_text, role=session.get('role', 'guest'))
+
+    return render_template(
+        "index.html",
+        movies=movies,
+        query=query_text,
+        year_from=year_from,
+        year_to=year_to,
+        role=session.get('role', 'guest')
+    )
+
 
 # ----------------------------
 # Login / Logout / Register
@@ -236,21 +254,30 @@ def person_by_role(role, title):
     year_from = request.args.get('year_from', '').strip()
     year_to = request.args.get('year_to', '').strip()
 
-    query = f"MATCH (p:Person) WHERE p.role = '{role}'"
+    query = f"MATCH (p:Person) WHERE p.role='{role}'"
     filters = []
+
     if name_filter:
-        filters.append(f"toLower(p.name) CONTAINS toLower('{name_filter.replace('\'', '\\\'')}')")
+        safe_name = name_filter.replace("'", "\\'")
+        filters.append(f"toLower(p.name) CONTAINS toLower('{safe_name}')")
+
     if year_from.isdigit():
         filters.append(f"p.birthYear >= {year_from}")
     if year_to.isdigit():
         filters.append(f"p.birthYear <= {year_to}")
+    
     if filters:
         query += " AND " + " AND ".join(filters)
+    
     query += " RETURN p.name AS name, p.birthYear AS birthYear, p.image AS image ORDER BY p.name LIMIT 50"
 
     people = conn.query(query)
     people = [dict(p) if not isinstance(p, dict) else p for p in people]
+
     return render_template("people_list.html", people=people, role=session.get('role', 'guest'), title=title)
+
+
+
 
 @app.route("/actors")
 def actors():
@@ -284,10 +311,57 @@ def reviewers():
     reviewers = conn.query(query)
     reviewers = [dict(r) if not isinstance(r, dict) else r for r in reviewers]
     return render_template("reviewers_list.html", reviewers=reviewers, role=session.get('role', 'guest'), title="Кино шүүмжлэгчид")
-    return render_template("actors.html", actors=actors)
-    return render_template("directors.html", directors=directors)
-    return render_template("writers.html", writers=writers)
-    return render_template("producers.html", producers=producers)
+    # return render_template("actors.html", actors=actors)
+    # return render_template("directors.html", directors=directors)
+    # return render_template("writers.html", writers=writers)
+    # return render_template("producers.html", producers=producers) 
+# ----------------------------
+# Admin: Delete Movie
+# ----------------------------
+@app.route('/admin/movie/<title>/delete', methods=['POST'])
+def delete_movie(title):
+    if session.get('role') != 'admin':
+        return "Зөвшөөрөгдсөнгүй!", 403
+
+    title_safe = title.replace("'", "\\'")
+    query = f"MATCH (m:Movie {{title: '{title_safe}'}}) DETACH DELETE m"
+    conn.query(query)
+    return redirect(url_for('index'))
+
+
+
+    
+# Засах (edit) route
+@app.route('/admin/movie/<title>/edit', methods=['GET', 'POST'])
+def edit_movie(title):
+    if session.get("role") != "admin":
+        return "Access Denied", 403
+
+    title_safe = title.replace("'", "\\'")
+    
+    if request.method == "POST":
+        # POST: form-оос ирсэн шинэ мэдээллийг хадгалах
+        new_title = request.form.get("title")
+        released = request.form.get("released")
+        image = request.form.get("image")
+        query = f"""
+            MATCH (m:Movie {{title:'{title_safe}'}})
+            SET m.title='{new_title}', m.released={released}, m.image='{image}'
+        """
+        conn.query(query)
+        return redirect(url_for('movie_detail', title=new_title))
+
+    # GET: form харуулах
+    result = conn.query(f"""
+        MATCH (m:Movie {{title:'{title_safe}'}})
+        RETURN m.title AS title, m.released AS released, m.image AS image
+    """)
+    if not result:
+        return "Movie not found"
+    movie = result[0]
+    return render_template("admin_edit_movie.html", movie=movie)
+
+
 
 # ----------------------------
 # Run Flask

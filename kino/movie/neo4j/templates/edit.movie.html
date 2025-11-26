@@ -1,34 +1,34 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="mn">
 <head>
     <meta charset="UTF-8">
-    <title>Кино засах</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кино засах: {{ movie.title }}</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
 </head>
-<body class="p-4">
-
-<h2>Кино засах</h2>
-
-<form method="post">
-
-    <div class="mb-3">
-        <label class="form-label">Гарчиг</label>
-        <input type="text" class="form-control" name="title" value="{{ movie.title }}" required>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Он</label>
-        <input type="number" class="form-control" name="year" value="{{ movie.year }}">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Зураг (файл нэр)</label>
-        <input type="text" class="form-control" name="image" value="{{ movie.image }}">
-    </div>
-
-    <button class="btn btn-primary">Хадгалах</button>
-    <a href="{{ url_for('movie_detail', title=movie.title) }}" class="btn btn-secondary">Буцах</a>
-</form>
-
+<body>
+<div class="container mt-4">
+    <h2>Кино засах: {{ movie.title }}</h2>
+    <form action="{{ url_for('update_movie', title=movie.title) }}" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="title" class="form-label">Киноны нэр</label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ movie.title }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="year" class="form-label">Он</label>
+            <input type="number" class="form-control" id="year" name="year" value="{{ movie.released }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="image" class="form-label">Зураг (шинээр оруулах боломжтой)</label>
+            <input type="file" class="form-control" id="image" name="image">
+            {% if movie.image %}
+                <p>Одоогийн зураг: <img src="{{ url_for('static', filename='movies/' + movie.image) }}" alt="{{ movie.title }}" width="100"></p>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Хадгалах</button>
+        <a href="{{ url_for('movie_detail', title=movie.title) }}" class="btn btn-secondary">Буцах</a>
+    </form>
+</div>
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>
