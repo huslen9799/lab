@@ -6,23 +6,39 @@
     <title>Document</title>
 </head>
 <body>
-    <h2>Кино засах</h2>
+   {% extends "base.html" %}
 
-<form method="POST" enctype="multipart/form-data">
-    <label>Гарчиг:</label>
-    <input name="title" value="{{ movie.title }}" required>
+{% block content %}
+<div class="container mt-4">
+    <h2>Кино засах: {{ movie.title }}</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="title" class="form-label">Кино нэр</label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ movie.title }}" required>
+        </div>
 
-    <label>Он:</label>
-    <input name="released" value="{{ movie.released }}" required>
+        <div class="mb-3">
+            <label for="released" class="form-label">Он</label>
+            <input type="number" class="form-control" id="released" name="released" value="{{ movie.released }}" required>
+        </div>
 
-    <label>Хуучин зураг:</label>
-    <input name="old_image" value="{{ movie.image }}" readonly>
+        <div class="mb-3">
+            <label class="form-label">Одоогийн зураг</label><br>
+            <img src="{{ url_for('static', filename='movies/' + (movie.image or 'default.jpg')) }}" alt="{{ movie.title }}" class="img-thumbnail mb-2" style="max-width:200px;">
+        </div>
 
-    <label>Шинэ зураг сонгох:</label>
-    <input type="file" name="image">
+        <div class="mb-3">
+            <label for="image" class="form-label">Шинэ зураг сонгох (заавал биш)</label>
+            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+        </div>
 
-    <button type="submit">Хадгалах</button>
-</form>
+        <button type="submit" class="btn btn-success">Хадгалах</button>
+        <a href="{{ url_for('movie_detail', title=movie.title) }}" class="btn btn-secondary">Буцах</a>
+    </form>
+</div>
+{% endblock %}
+
+
 
 </body>
 </html>

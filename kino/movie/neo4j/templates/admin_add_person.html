@@ -6,16 +6,33 @@
     <title>Document</title>
 </head>
 <body>
-    <h2>Хүн нэмэх</h2>
-<form method="POST" enctype="multipart/form-data">
-    <label>Нэр:</label><br>
-    <input type="text" name="name"><br>
-    <label>Төрсөн он:</label><br>
-    <input type="number" name="birthYear"><br>
-    <label>Зураг:</label><br>
-    <input type="file" name="image"><br><br>
-    <button type="submit">Нэмэх</button>
-</form>
+<!-- admin_add_person.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Хүн нэмэх</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="name" class="form-label">Нэр</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="birthYear" class="form-label">Төрсөн он</label>
+            <input type="number" class="form-control" id="birthYear" name="birthYear">
+        </div>
+
+        <div class="mb-3">
+            <label for="image" class="form-label">Зураг</label>
+            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Нэмэх</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Буцах</a>
+    </form>
+</div>
+{% endblock %}
+
 
 </body>
 </html>

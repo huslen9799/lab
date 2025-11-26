@@ -249,51 +249,63 @@ def person_detail(name):
 # ----------------------------
 # People pages with filter (function нэг удаа тодорхойлсон)
 # ----------------------------
-def person_by_role(role, title):
-    name_filter = request.args.get('name', '').strip()
-    year_from = request.args.get('year_from', '').strip()
-    year_to = request.args.get('year_to', '').strip()
+def people_by_role(role, title):
+    # GET параметрүүдээс шүүлт авах
+    name_filter = request.args.get("name", "").strip()
+    born_from = request.args.get("born_from", "").strip()
+    born_to = request.args.get("born_to", "").strip()
 
-    query = f"MATCH (p:Person) WHERE p.role='{role}'"
-    filters = []
+    # Neo4j query эхлэх
+    query = f"MATCH (p:Person)-[r:{role.upper()}]->(m:Movie) WHERE 1=1"
 
+    # Нэрээр шүүлт
     if name_filter:
         safe_name = name_filter.replace("'", "\\'")
-        filters.append(f"toLower(p.name) CONTAINS toLower('{safe_name}')")
+        query += f" AND toLower(p.name) CONTAINS toLower('{safe_name}')"
 
-    if year_from.isdigit():
-        filters.append(f"p.birthYear >= {year_from}")
-    if year_to.isdigit():
-        filters.append(f"p.birthYear <= {year_to}")
-    
-    if filters:
-        query += " AND " + " AND ".join(filters)
-    
-    query += " RETURN p.name AS name, p.birthYear AS birthYear, p.image AS image ORDER BY p.name LIMIT 50"
+    # Төрсөн огноо (born) шүүлт
+    if born_from.isdigit():
+        query += f" AND p.born >= {born_from}"
+    if born_to.isdigit():
+        query += f" AND p.born <= {born_to}"
+
+    # Query-г дуусгах
+    query += """
+    RETURN p.name AS name, p.born AS born, p.image AS image,
+           collect({title: m.title, year: m.released, image: m.image}) AS movies
+    ORDER BY p.name LIMIT 50
+    """
 
     people = conn.query(query)
     people = [dict(p) if not isinstance(p, dict) else p for p in people]
 
-    return render_template("people_list.html", people=people, role=session.get('role', 'guest'), title=title)
+    return render_template("people_list.html", people=people, role=session.get("role", "guest"), title=title)
 
 
 
 
+
+# ----------------------------
+# Person movies by role
+# ----------------------------
 @app.route("/actors")
 def actors():
-    return person_by_role('actor', "Жүжигчид")
+    return people_by_role("actor", "Жүжигчид")
 
 @app.route("/directors")
 def directors():
-    return person_by_role('director', "Найруулагч")
+    return people_by_role("director", "Найруулагч")
 
 @app.route("/writers")
 def writers():
-    return person_by_role('writer', "Зохиолч")
+    return people_by_role("writer", "Зохиолч")
 
 @app.route("/producers")
 def producers():
-    return person_by_role('producer', "Продюсер")
+    return people_by_role("producer", "Продюсер")
+
+
+
 
 # ----------------------------
 # Reviewers
@@ -331,22 +343,31 @@ def delete_movie(title):
 
 
     
-# Засах (edit) route
 @app.route('/admin/movie/<title>/edit', methods=['GET', 'POST'])
 def edit_movie(title):
     if session.get("role") != "admin":
         return "Access Denied", 403
 
     title_safe = title.replace("'", "\\'")
-    
+
+    # POST: form-оос ирсэн шинэ мэдээллийг хадгалах
     if request.method == "POST":
-        # POST: form-оос ирсэн шинэ мэдээллийг хадгалах
-        new_title = request.form.get("title")
+        new_title = request.form.get("title").replace("'", "\\'")
         released = request.form.get("released")
-        image = request.form.get("image")
+        img_file = request.files.get("image")
+        
+        # Зураг хадгалах
+        if img_file and img_file.filename:
+            img_name = img_file.filename
+            img_file.save(os.path.join(app.config['MOVIE_UPLOAD'], img_name))
+        else:
+            # Шинэ зураг ороогүй бол хуучин зураг хадгалах
+            result = conn.query(f"MATCH (m:Movie {{title:'{title_safe}'}}) RETURN m.image AS image")
+            img_name = result[0]['image'] if result else 'default.jpg'
+
         query = f"""
             MATCH (m:Movie {{title:'{title_safe}'}})
-            SET m.title='{new_title}', m.released={released}, m.image='{image}'
+            SET m.title='{new_title}', m.released={released}, m.image='{img_name}'
         """
         conn.query(query)
         return redirect(url_for('movie_detail', title=new_title))
@@ -358,6 +379,7 @@ def edit_movie(title):
     """)
     if not result:
         return "Movie not found"
+    
     movie = result[0]
     return render_template("admin_edit_movie.html", movie=movie)
 

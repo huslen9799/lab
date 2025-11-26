@@ -6,55 +6,44 @@
     <title>Document</title>
 </head>
 <body>
-    {% extends "base.html" %}
+  {% extends "base.html" %}
 
 {% block content %}
-<section class="section-content padding-y">
-<div class="container">
+<div class="container mt-4">
+    <h2>{{ title }}</h2>
+    <p>{{ people|length }} хүн олдлоо</p>
+
     <div class="row">
-        <aside class="col-md-3">
-            <!-- Хайх хэсэг -->
-            <div class="card">
-                <article class="filter-group">
-                    <header class="card-header"><h6 class="title">Хайх</h6></header>
-                    <div class="card-body">
-                        <!-- Хайх form -->
-                        <form method="get" action="">
-                            <input class="form-control mb-2" type="text" name="name" placeholder="Хүнээр хайх" value="{{ request.args.get('name','') }}">
-                            <input class="form-control mb-2" type="text" name="birthYear" placeholder="Төрсөн он" value="{{ request.args.get('birthYear','') }}">
-                            <button class="btn btn-primary btn-block" type="submit">Хайх</button>
-                        </form>
-                    </div>
-                </article>
-            </div>
-        </aside>
+        {% for person in people %}
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <img src="{{ url_for('static', filename='people/' + (person.image or 'default.jpg')) }}" class="card-img-top" alt="{{ person.name }}">
+                <div class="card-body">
+                    <form method="get">
+    <input type="text" name="name" placeholder="Хүнээр хайх" value="{{ request.args.get('name','') }}">
+    <input type="number" name="born_from" placeholder="Төрсөн он (эсвэл эх)" value="{{ request.args.get('born_from','') }}">
+    <input type="number" name="born_to" placeholder="Төрсөн он (эсвэл төгс)" value="{{ request.args.get('born_to','') }}">
+    <button type="submit" class="btn btn-primary">Хайх</button>
+</form>
 
-        <main class="col-md-9">
-            <header class="border-bottom mb-4 pb-3">
-                <h2>{{ title }}</h2>
-                <span>{{ people|length }} хүн олдлоо</span>
-            </header>
-
-            <div class="row">
-                {% for person in people %}
-                <div class="col-md-4">
-                    <figure class="card card-product-grid">
-                        <div class="img-wrap">
-                            <img src="{{ url_for('static', filename='people/' + (person.get('image') or 'default.jpg')) }}" alt="{{ person.name }}">
-                        </div>
-                        <figcaption class="info-wrap">
-                            <a href="{{ url_for('person_detail', name=person.get('name')) }}" class="title">{{ person.get('name') }}</a>
-
-                            {% if person.birthYear %} <small>({{ person.birthYear }})</small> {% endif %}
-                        </figcaption>
-                    </figure>
+                    <h5 class="card-title">{{ person.name }}</h5>
+                    {% if person.birthYear %}<p>Төрсөн он: {{ person.birthYear }}</p>{% endif %}
+                    <h6>Кинонууд:</h6>
+                    <ul>
+                        {% for movie in person.movies %}
+                        <li>
+                            <a href="{{ url_for('movie_detail', title=movie.title) }}">
+                                {{ movie.title }} ({{ movie.year }})
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </div>
-                {% endfor %}
             </div>
-        </main>
+        </div>
+        {% endfor %}
     </div>
 </div>
-</section>
 {% endblock %}
 
 </body>

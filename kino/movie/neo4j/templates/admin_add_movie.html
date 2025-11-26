@@ -1,27 +1,39 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-   <h2>Кино нэмэх</h2>
-<form method="POST" enctype="multipart/form-data">
-    <label>Киноны нэр:</label>
-    <input type="text" name="title" required><br>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <body>
+   <!-- admin_add_movie.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Кино нэмэх</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="title" class="form-label">Киноны нэр</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+        </div>
 
-    <label>Нээлт хийсэн он:</label>
-    <input type="number" name="released" required><br>
+        <div class="mb-3">
+            <label for="released" class="form-label">Нээлт хийсэн он</label>
+            <input type="number" class="form-control" id="released" name="released" required>
+        </div>
 
-    <label>Киноны зураг:</label>
-    <input type="file" name="image"><br>
+        <div class="mb-3">
+            <label for="image" class="form-label">Киноны зураг</label>
+            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+        </div>
 
-    <button type="submit">Нэмэх</button>
-</form>
+        <button type="submit" class="btn btn-primary">Нэмэх</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Буцах</a>
+    </form>
+</div>
+{% endblock %}
 
 
-
-</body>
-</html>
+    </body>
+    </html>
