@@ -18,7 +18,12 @@
                 <article class="filter-group">
                     <header class="card-header"><h6 class="title">Хайх</h6></header>
                     <div class="card-body">
-                        <input class="form-control mb-2" type="text" placeholder="Хүнээр хайх">
+                        <!-- Хайх form -->
+                        <form method="get" action="">
+                            <input class="form-control mb-2" type="text" name="name" placeholder="Хүнээр хайх" value="{{ request.args.get('name','') }}">
+                            <input class="form-control mb-2" type="text" name="birthYear" placeholder="Төрсөн он" value="{{ request.args.get('birthYear','') }}">
+                            <button class="btn btn-primary btn-block" type="submit">Хайх</button>
+                        </form>
                     </div>
                 </article>
             </div>
@@ -39,6 +44,7 @@
                         </div>
                         <figcaption class="info-wrap">
                             <a href="#" class="title">{{ person.name }}</a>
+                            {% if person.birthYear %} <small>({{ person.birthYear }})</small> {% endif %}
                         </figcaption>
                     </figure>
                 </div>

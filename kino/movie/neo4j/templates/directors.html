@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% extends "layout.html" %}
+{% block content %}
+
+<section class="section-pagetop bg-light">
+    <div class="container">
+        <h2 class="title-page">Найруулагчид</h2>
+    </div>
+</section>
+
+<section class="section-content padding-y">
+<div class="container">
+
+    <div class="row">
+        {% for director in directors %}
+        <div class="col-md-4 mb-4">
+            <div class="card card-product-grid">
+                <div class="img-wrap">
+                    <img src="{{ url_for('static', filename='people/' + (director.image or 'default_person.jpg')) }}">
+                </div>
+                <figcaption class="info-wrap">
+                    <h5><a href="{{ url_for('person_detail', name=director.name) }}">{{ director.name }}</a></h5>
+                    <p class="text-muted">Найруулагч</p>
+
+                    <hr>
+
+                    <h6>Найруулсан кинонууд:</h6>
+                    <ul>
+                        {% for movie in director.movies %}
+                            <li><a href="{{ url_for('movie_detail', title=movie.title) }}">{{ movie.title }}</a></li>
+                        {% endfor %}
+                    </ul>
+
+                </figcaption>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+</section>
+
+{% endblock %}
+
+</body>
+</html>

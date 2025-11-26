@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+   {% extends "layout.html" %}
+{% block content %}
+
+<section class="section-pagetop bg-light">
+    <div class="container">
+        <h2 class="title-page">{{ person.name }}</h2>
+    </div>
+</section>
+
+<section class="section-content padding-y">
+<div class="container">
+
+    <div class="row">
+        <div class="col-md-4">
+            <img class="img-fluid rounded" src="{{ url_for('static', filename='people/' + (person.image or 'default_person.jpg')) }}">
+        </div>
+
+        <div class="col-md-8">
+            <h4>Холбоотой кинонууд</h4>
+
+            <h5>🎭 Жүжигчээр тоглосон</h5>
+            {% if person.acted %}
+                <ul>
+                {% for movie in person.acted %}
+                    <li><a href="{{ url_for('movie_detail', title=movie.title) }}">{{ movie.title }}</a></li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>Тоглосон кино алга.</p>
+            {% endif %}
+
+            <h5>🎬 Найруулсан</h5>
+            {% if person.directed %}
+                <ul>
+                {% for movie in person.directed %}
+                    <li><a href="{{ url_for('movie_detail', title=movie.title) }}">{{ movie.title }}</a></li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>Найруулсан кино алга.</p>
+            {% endif %}
+
+            <h5>✍️ Зохиол бичсэн</h5>
+            {% if person.wrote %}
+                <ul>
+                {% for movie in person.wrote %}
+                    <li><a href="{{ url_for('movie_detail', title=movie.title) }}">{{ movie.title }}</a></li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>Зохиол бичсэн кино алга.</p>
+            {% endif %}
+
+            <h5>💼 Продюсер хийсэн</h5>
+            {% if person.produced %}
+                <ul>
+                {% for movie in person.produced %}
+                    <li><a href="{{ url_for('movie_detail', title=movie.title) }}">{{ movie.title }}</a></li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>Продюсер хийсэн кино алга.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+</section>
+
+{% endblock %}
+
+</body>
+</html>

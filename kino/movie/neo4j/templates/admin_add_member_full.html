@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <title>Кинонд гишүүн бүртгэх</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Кинонд гишүүн бүртгэх</h2>
+    <form method="post">
+        <div class="mb-3">
+            <label for="movie">Кино сонгох:</label>
+            <select class="form-select" name="movie" required>
+                <option value="">-- Сонгох --</option>
+                {% for m in movies %}
+                    <option value="{{ m.title }}">{{ m.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="person">Хүн сонгох:</label>
+            <select class="form-select" name="person" required>
+                <option value="">-- Сонгох --</option>
+                {% for p in people %}
+                    <option value="{{ p.name }}">{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="role">Үүрэг:</label>
+            <select class="form-select" name="role" required>
+                <option value="ACTED_IN">Жүжигчин</option>
+                <option value="DIRECTED">Найруулагч</option>
+                <option value="WROTE">Зохиолч</option>
+                <option value="PRODUCED">Продюсер</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Нэмэх</button>
+    </form>
+</div>
+</body>
+</html>

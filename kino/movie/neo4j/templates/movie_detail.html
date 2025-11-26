@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ movie.title if movie else 'Кино мэдээлэл' }} | Movie App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui.css') }}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <a class="navbar-brand" href="{{ url_for('index') }}">Movie App</a>
+</nav>
+
+<div class="container mt-4">
+   {% if movie %}
+    <h2>{{ movie.title }} ({{ movie.year }})</h2>
+    <img src="{{ url_for('static', filename='movies/' + (movie.image or 'default.jpg')) }}" alt="{{ movie.title }}" class="img-fluid mb-3">
+
+    {% if movie.avg_rating %}
+    <p><strong>Дундаж үнэлгээ:</strong> {{ movie.avg_rating }}/10</p>
+    {% endif %}
+
+    <h4>Кино баг:</h4>
+    {% if movie.team %}
+        <h5>Жүжигчид:</h5>
+        <ul>
+            {% for member in movie.team if member.role == 'ACTED_IN' %}
+                <li>{{ member.name }}</li>
+            {% endfor %}
+        </ul>
+
+        <h5>Найруулагч:</h5>
+        <ul>
+            {% for member in movie.team if member.role == 'DIRECTED' %}
+                <li>{{ member.name }}</li>
+            {% endfor %}
+        </ul>
+
+        <h5>Зохиолч:</h5>
+        <ul>
+            {% for member in movie.team if member.role == 'WROTE' %}
+                <li>{{ member.name }}</li>
+            {% endfor %}
+        </ul>
+
+        <h5>Продюсер:</h5>
+        <ul>
+            {% for member in movie.team if member.role == 'PRODUCED' %}
+                <li>{{ member.name }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Багийн мэдээлэл алга.</p>
+    {% endif %}
+
+    <h4>Сэтгэгдэл:</h4>
+    {% if movie.reviews %}
+    <ul>
+        {% for review in movie.reviews %}
+            <li>{{ review.username }} - {{ review.rating }}/10: {{ review.summary }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+        <p>Сэтгэгдэл байхгүй байна.</p>
+    {% endif %}
+
+    {% if session.get('role') == 'admin' and people %}
+    <hr>
+    <h4>Кино баг нэмэх (админ):</h4>
+    <ul>
+        {% for person in people %}
+            <li>
+                {{ person.name }} - 
+                <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='ACTED_IN') }}">Жүжигчин</a>
+                <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='DIRECTED') }}">Найруулагч</a>
+                <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='WROTE') }}">Зохиолч</a>
+                <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='PRODUCED') }}">Продюсер</a>
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if session.get('username') and session.get('role') != 'guest' %}
+    <hr>
+    <h5>Шинэ санал нэмэх:</h5>
+    <form method="post" action="{{ url_for('add_review', title=movie.title) }}">
+        <div class="mb-2">
+            <textarea class="form-control" name="summary" placeholder="Санал..." required></textarea>
+        </div>
+        <div class="mb-2">
+            <input type="number" class="form-control" name="rating" min="1" max="10" placeholder="Үнэлгээ (1-10)" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Нэмэх</button>
+    </form>
+    {% else %}
+        <p>Сэтгэгдэл үлдээхийн тулд нэвтэрсэн байх шаардлагатай.</p>
+    {% endif %}
+
+{% else %}
+    <p>Кино олдсонгүй.</p>
+{% endif %}
+</div>
+
+</body>
+</html>
