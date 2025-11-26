@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% extends "base.html" %}
+
+{% block content %}
+<section class="section-content padding-y">
+<div class="container">
+    <div class="row">
+        <aside class="col-md-3">
+            <!-- Хайх хэсэг -->
+            <div class="card">
+                <article class="filter-group">
+                    <header class="card-header"><h6 class="title">Хайх</h6></header>
+                    <div class="card-body">
+                        <input class="form-control mb-2" type="text" placeholder="Хүнээр хайх">
+                    </div>
+                </article>
+            </div>
+        </aside>
+
+        <main class="col-md-9">
+            <header class="border-bottom mb-4 pb-3">
+                <h2>{{ title }}</h2>
+                <span>{{ people|length }} хүн олдлоо</span>
+            </header>
+
+            <div class="row">
+                {% for person in people %}
+                <div class="col-md-4">
+                    <figure class="card card-product-grid">
+                        <div class="img-wrap">
+                            <img src="{{ url_for('static', filename='people/' + (person.get('image') or 'default.jpg')) }}" alt="{{ person.name }}">
+                        </div>
+                        <figcaption class="info-wrap">
+                            <a href="#" class="title">{{ person.name }}</a>
+                        </figcaption>
+                    </figure>
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+    </div>
+</div>
+</section>
+{% endblock %}
+
+</body>
+</html>
