@@ -30,6 +30,7 @@ conn = Neo4jConnection(uri="neo4j://127.0.0.1:7687", user="neo4j", pwd="12345678
 USERS = {
     'guest': {'password': '', 'role': 'guest'},
     'member': {'password': 'member123', 'role': 'member'},
+     'Huslen': {'password': 'huslen123', 'role': 'member'},
     'admin': {'password': 'admin123', 'role': 'admin'}
 }
 
