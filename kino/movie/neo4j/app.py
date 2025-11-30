@@ -116,28 +116,51 @@ def register():
 @app.route("/movie/<title>")
 def movie_detail(title):
     title_safe = title.replace("'", "\\'")
+    
     query = f"""
     MATCH (m:Movie {{title: '{title_safe}'}})
     OPTIONAL MATCH (m)<-[r:REVIEWED]-(u:User)
     OPTIONAL MATCH (m)<-[a:ACTED_IN|DIRECTED|WROTE|PRODUCED]-(p:Person)
     RETURN m.title AS title, m.released AS year, m.image AS image,
            collect(DISTINCT {{username: u.username, summary: r.summary, rating: r.rating}}) AS reviews,
-           collect(DISTINCT {{name: p.name, role: type(a)}}) AS team
+           collect(DISTINCT {{name: p.name, role: type(a), image: p.image}}) AS team
     """
+    
     result = conn.query(query)
-    movie = dict(result[0]) if result else None
+    if not result:
+        return "Movie not found", 404
+    
+    movie = dict(result[0])
 
-    # Дундаж үнэлгээ
-    if movie and movie['reviews']:
-        ratings = [rev['rating'] for rev in movie['reviews'] if rev['rating'] is not None]
-        movie['avg_rating'] = round(sum(ratings)/len(ratings), 2) if ratings else None
+    # --- Дундаж үнэлгээ ---
+    if movie["reviews"]:
+        ratings = [rev["rating"] for rev in movie["reviews"] if rev["rating"] is not None]
+        movie["avg_rating"] = round(sum(ratings) / len(ratings), 2) if ratings else None
     else:
-        movie['avg_rating'] = None
+        movie["avg_rating"] = None
 
-    # Админд зориулсан бүх хүн
-    people = conn.query("MATCH (p:Person) RETURN p.name AS name ORDER BY p.name") if session.get('role') == 'admin' else []
+    # --- Кино багийг төрөл тус бүрээр ангилах ---
+    team = movie.get("team", [])
 
-    return render_template("movie_detail.html", movie=movie, people=people, role=session.get('role', 'guest'))
+    actors =     [p for p in team if p["role"] == "ACTED_IN"]
+    directors =  [p for p in team if p["role"] == "DIRECTED"]
+    writers =    [p for p in team if p["role"] == "WROTE"]
+    producers =  [p for p in team if p["role"] == "PRODUCED"]
+
+    # --- Админ хүнүүдийн жагсаалт ---
+    people = conn.query("MATCH (p:Person) RETURN p.name AS name ORDER BY p.name") \
+             if session.get("role") == "admin" else []
+
+    return render_template(
+        "movie_detail.html",
+        movie=movie,
+        actors=actors,
+        directors=directors,
+        writers=writers,
+        producers=producers,
+        people=people,
+        role=session.get('role', 'guest')
+    )
 
 # ----------------------------
 # Quick Add Member (Admin)
@@ -203,18 +226,31 @@ def add_movie():
 def add_person():
     if session.get('role') != 'admin':
         return "Зөвшөөрөгдсөнгүй!"
+
     if request.method == 'POST':
         name = request.form.get('name', '').replace("'", "\\'")
-        birth = request.form.get('birthYear', '0')
+        born = request.form.get('born', '0')   # <-- ШИНЭ
         role = request.form.get('role', 'actor')
+
         img_file = request.files.get('image')
         img_name = img_file.filename if img_file else 'default.jpg'
+
         if img_file:
             img_file.save(os.path.join(app.config['PERSON_UPLOAD'], img_name))
-        query = f"CREATE (p:Person {{name: '{name}', birthYear: {birth}, role: '{role}', image: '{img_name}'}})"
+
+        query = f"""
+        CREATE (p:Person {{
+            name: '{name}',
+            born: {born},
+            role: '{role}',
+            image: '{img_name}'
+        }})
+        """
         conn.query(query)
         return redirect(url_for('index'))
+
     return render_template("admin_add_person.html")
+
 
 @app.route("/admin/movie/<title>/add_member", methods=['GET', 'POST'])
 def add_member(title):
@@ -239,47 +275,85 @@ def add_member(title):
 def person_detail(name):
     name_safe = name.replace("'", "\\'")
     query = f"""
-    MATCH (p:Person {{name: '{name_safe}'}})-[r:ACTED_IN|DIRECTED|WROTE|PRODUCED]->(m:Movie)
-    RETURN p.name AS name, p.role AS role, collect({{title: m.title, year: m.released, image: m.image}}) AS movies
+        MATCH (p:Person {{name: '{name_safe}'}})
+        OPTIONAL MATCH (p)-[:ACTED_IN]->(m1:Movie)
+        OPTIONAL MATCH (p)-[:DIRECTED]->(m2:Movie)
+        OPTIONAL MATCH (p)-[:WROTE]->(m3:Movie)
+        OPTIONAL MATCH (p)-[:PRODUCED]->(m4:Movie)
+
+        RETURN p,
+        collect(DISTINCT m1) AS acted_movies,
+        collect(DISTINCT m2) AS directed_movies,
+        collect(DISTINCT m3) AS written_movies,
+        collect(DISTINCT m4) AS produced_movies
     """
     result = conn.query(query)
-    person = dict(result[0]) if result else None
-    return render_template("person_detail.html", person=person, role=session.get('role', 'guest'))
+
+    if not result:
+        return "Хүн олдсонгүй", 404
+
+    record = result[0]
+
+    return render_template(
+        "person_detail.html",
+        person=record["p"],
+        acted=record["acted_movies"],
+        directed=record["directed_movies"],
+        written=record["written_movies"],
+        produced=record["produced_movies"],
+        role=session.get("role", "guest")
+    )
+
 
 # ----------------------------
 # People pages with filter (function нэг удаа тодорхойлсон)
 # ----------------------------
 def people_by_role(role, title):
-    # GET параметрүүдээс шүүлт авах
+
+    role_map = {
+        "actor": "ACTED_IN",
+        "director": "DIRECTED",
+        "writer": "WROTE",
+        "producer": "PRODUCED"
+    }
+
+    rel = role_map.get(role.lower())
+    if not rel:
+        return "Invalid role", 400
+
     name_filter = request.args.get("name", "").strip()
     born_from = request.args.get("born_from", "").strip()
     born_to = request.args.get("born_to", "").strip()
 
-    # Neo4j query эхлэх
-    query = f"MATCH (p:Person)-[r:{role.upper()}]->(m:Movie) WHERE 1=1"
+    query = f"""
+    MATCH (p:Person)-[:{rel}]->(m:Movie)
+    WHERE 1=1
+    """
 
-    # Нэрээр шүүлт
     if name_filter:
-        safe_name = name_filter.replace("'", "\\'")
-        query += f" AND toLower(p.name) CONTAINS toLower('{safe_name}')"
+        safe = name_filter.replace("'", "\\'")
+        query += f" AND toLower(p.name) CONTAINS toLower('{safe}')"
 
-    # Төрсөн огноо (born) шүүлт
     if born_from.isdigit():
         query += f" AND p.born >= {born_from}"
+
     if born_to.isdigit():
         query += f" AND p.born <= {born_to}"
 
-    # Query-г дуусгах
     query += """
     RETURN p.name AS name, p.born AS born, p.image AS image,
-           collect({title: m.title, year: m.released, image: m.image}) AS movies
-    ORDER BY p.name LIMIT 50
+           collect({title:m.title, year:m.released, image:m.image}) AS movies
+    ORDER BY p.name
+    LIMIT 50
     """
 
     people = conn.query(query)
-    people = [dict(p) if not isinstance(p, dict) else p for p in people]
+    people = [dict(p) for p in people]
 
-    return render_template("people_list.html", people=people, role=session.get("role", "guest"), title=title)
+    return render_template("people_list.html", people=people, title=title, role=session.get("role", "guest"))
+
+
+
 
 
 
@@ -304,8 +378,64 @@ def writers():
 def producers():
     return people_by_role("producer", "Продюсер")
 
+# ----------------------------
+# Admin: Edit Person
+# ----------------------------
+@app.route("/admin/person/<name>/edit", methods=['GET', 'POST'])
+def edit_person(name):
+    if session.get("role") != "admin":
+        return "Access Denied", 403
 
+    name_safe = name.replace("'", "\\'")
 
+    # POST — update person info
+    if request.method == 'POST':
+        new_name = request.form.get("name").replace("'", "\\'")
+        born = request.form.get("born", "0")
+        role = request.form.get("role", "actor")
+        img_file = request.files.get("image")
+
+        # New image → save
+        if img_file and img_file.filename:
+            img_name = img_file.filename
+            img_file.save(os.path.join(app.config['PERSON_UPLOAD'], img_name))
+        else:
+            # Keep old image
+            old = conn.query(f"""
+                MATCH (p:Person {{name:'{name_safe}'}})
+                RETURN p.image AS image
+            """)
+            img_name = old[0]["image"] if old else "default.jpg"
+
+        # Update Neo4j
+        query = f"""
+        MATCH (p:Person {{name:'{name_safe}'}})
+        SET p.name='{new_name}', p.born={born}, p.role='{role}', p.image='{img_name}'
+        """
+        conn.query(query)
+
+        return redirect(url_for("person_detail", name=new_name))
+
+    # GET — load data
+    result = conn.query(f"""
+        MATCH (p:Person {{name:'{name_safe}'}})
+        RETURN p.name AS name, p.born AS born, p.role AS role, p.image AS image
+    """)
+
+    if not result:
+        return "Person not found", 404
+
+    person = result[0]
+    return render_template("admin_edit_person.html", person=person)
+
+@app.route("/admin/person/<name>/delete", methods=['POST'])
+def delete_person(name):
+    if session.get("role") != "admin":
+        return "Access Denied", 403
+
+    name_safe = name.replace("'", "\\'")
+    conn.query(f"MATCH (p:Person {{name:'{name_safe}'}}) DETACH DELETE p")
+    return redirect(url_for('index'))
 
 # ----------------------------
 # Reviewers

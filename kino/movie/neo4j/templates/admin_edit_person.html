@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-4">Хүний мэдээлэл засах</h2>
+
+<form method="POST" enctype="multipart/form-data" style="max-width: 500px;">
+
+    <label>Нэр:</label>
+    <input type="text" name="name" class="form-control" value="{{ person.name }}" required>
+
+    <label class="mt-3">Төрсөн он (born):</label>
+    <input type="number" name="born" class="form-control" value="{{ person.born }}">
+
+    <label class="mt-3">Role:</label>
+    <select name="role" class="form-control">
+        <option value="actor" {% if person.role=='actor' %}selected{% endif %}>Жүжигчин</option>
+        <option value="director" {% if person.role=='director' %}selected{% endif %}>Найруулагч</option>
+        <option value="writer" {% if person.role=='writer' %}selected{% endif %}>Зохиолч</option>
+        <option value="producer" {% if person.role=='producer' %}selected{% endif %}>Продюсер</option>
+    </select>
+
+    <label class="mt-3">Зураг солих:</label><br>
+    <img src="/static/people/{{ person.image }}" width="120" class="mb-2">
+    <input type="file" name="image" class="form-control">
+
+    <button class="btn btn-primary mt-4">Хадгалах</button>
+
+</form>
+
+{% endblock %}
+
+</body>
+</html>

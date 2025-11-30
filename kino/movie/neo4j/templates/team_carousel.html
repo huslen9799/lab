@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% if list|length > 0 %}
+<div id="carousel-{{ list|length }}-{{ loop.index0 }}" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+
+        {% for group in list|batch(3, fill_with=None) %}
+        <div class="carousel-item {% if loop.first %}active{% endif %}">
+            <div class="d-flex justify-content-between">
+
+                {% for person in group %}
+                    {% if person %}
+                    <div class="text-center" style="width: 30%;">
+                        <img src="/static/people/{{ person.image }}" class="img-fluid rounded" style="height:150px; object-fit:cover;">
+                        <p><a href="{{ url_for('person_detail', name=person.name) }}">{{ person.name }}</a></p>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ list|length }}-{{ loop.index0 }}" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ list|length }}-{{ loop.index0 }}" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
+
+</div>
+{% else %}
+<p class="text-muted">Мэдээлэл алга.</p>
+{% endif %}
+
+</body>
+</html>

@@ -6,45 +6,78 @@
     <title>Document</title>
 </head>
 <body>
-  {% extends "base.html" %}
+ {% extends "base.html" %}
 
 {% block content %}
 <div class="container mt-4">
+
     <h2>{{ title }}</h2>
-    <p>{{ people|length }} хүн олдлоо</p>
 
-    <div class="row">
-        {% for person in people %}
+    <!-- Хайлт -->
+    <form method="GET" class="row g-3 mb-4">
         <div class="col-md-4">
-            <div class="card mb-4">
-                <img src="{{ url_for('static', filename='people/' + (person.image or 'default.jpg')) }}" class="card-img-top" alt="{{ person.name }}">
-                <div class="card-body">
-                    <form method="get">
-    <input type="text" name="name" placeholder="Хүнээр хайх" value="{{ request.args.get('name','') }}">
-    <input type="number" name="born_from" placeholder="Төрсөн он (эсвэл эх)" value="{{ request.args.get('born_from','') }}">
-    <input type="number" name="born_to" placeholder="Төрсөн он (эсвэл төгс)" value="{{ request.args.get('born_to','') }}">
-    <button type="submit" class="btn btn-primary">Хайх</button>
-</form>
+            <label class="form-label">Нэрээр хайх</label>
+            <input type="text" name="name" value="{{ request.args.get('name', '') }}" class="form-control" placeholder="Нэр">
+        </div>
 
-                    <h5 class="card-title">{{ person.name }}</h5>
-                    {% if person.birthYear %}<p>Төрсөн он: {{ person.birthYear }}</p>{% endif %}
-                    <h6>Кинонууд:</h6>
-                    <ul>
-                        {% for movie in person.movies %}
-                        <li>
-                            <a href="{{ url_for('movie_detail', title=movie.title) }}">
-                                {{ movie.title }} ({{ movie.year }})
-                            </a>
-                        </li>
-                        {% endfor %}
-                    </ul>
+        <div class="col-md-3">
+            <label class="form-label">Төрсөн он (ихээс)</label>
+            <input type="number" name="born_from" value="{{ request.args.get('born_from', '') }}" class="form-control">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Төрсөн он (буугаас)</label>
+            <input type="number" name="born_to" value="{{ request.args.get('born_to', '') }}" class="form-control">
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100">Хайх</button>
+        </div>
+    </form>
+
+    <hr>
+
+    {% if people %}
+        <div class="row">
+            {% for p in people %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+
+                    <img src="{{ url_for('static', filename='people/' + (p.image or 'default.jpg')) }}"
+                         class="card-img-top" style="height:250px; object-fit:cover;">
+
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ url_for('person_detail', name=p.name) }}">{{ p.name }}</a>
+                        </h5>
+
+                        <p class="text-muted">
+                            Төрсөн он: {{ p.born if p.born else '—' }}
+                        </p>
+
+                        <h6>Холбогдсон кинонууд:</h6>
+                        <ul class="small">
+                            {% for m in p.movies %}
+                            <li>
+                                <a href="{{ url_for('movie_detail', title=m.title) }}">
+                                    {{ m.title }} ({{ m.year }})
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+
+                    </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
+
+    {% else %}
+        <p class="text-muted">Хайлтанд тохирох хүн олдсонгүй.</p>
+    {% endif %}
 </div>
 {% endblock %}
+
 
 </body>
 </html>
