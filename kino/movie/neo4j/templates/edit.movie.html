@@ -25,7 +25,7 @@
                 <p>Одоогийн зураг: <img src="{{ url_for('static', filename='movies/' + movie.image) }}" alt="{{ movie.title }}" width="100"></p>
             {% endif %}
         </div>
-        <button type="submit" class="btn btn-primary">Хадгалах</button>
+        <button type="submit" class="btn btn-secondary">Хадгалах</button>
         <a href="{{ url_for('movie_detail', title=movie.title) }}" class="btn btn-secondary">Буцах</a>
     </form>
 </div>

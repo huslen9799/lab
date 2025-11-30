@@ -24,13 +24,88 @@
 <link href="{{ url_for('static', filename='css/ui.css') }}" rel="stylesheet"/>
 <link href="{{ url_for('static', filename='css/responsive.css') }}" rel="stylesheet" media="only screen and (max-width: 1200px)"/>
 
+<style>
+/* Red-Black Dark Theme Overrides */
+body {
+    background-color: #121212;
+    color: #f0f0f0;
+}
+.navbar-dark {
+    background-color: #1b1b1b;
+}
+.navbar-dark .navbar-nav .nav-link {
+    color: #f0f0f0;
+}
+.navbar-dark .navbar-nav .nav-link.text-warning {
+    color: #ff4d4d !important; /* Улаан өнгө */
+}
+.navbar-dark .navbar-text {
+    color: #f0f0f0;
+}
+.section-header, .section-footer, .section-pagetop, .section-content {
+    background-color: #1b1b1b;
+}
+.card {
+    background-color: #2a2a2a;
+    color: #f0f0f0;
+    border: none;
+}
+.card-header {
+    background-color: #2a2a2a;
+    color: #f0f0f0;
+}
+.card-product-grid .img-wrap {
+    background-color: #2a2a2a;
+}
+.btn-primary {
+    background-color: #ff4d4d;
+    border-color: #ff4d4d;
+    color: #fff;
+}
+.btn-primary:hover {
+    background-color: #e03e3e;
+    border-color: #e03e3e;
+}
+input, textarea {
+    background-color: #2a2a2a;
+    color: #f0f0f0;
+    border: 1px solid #444;
+}
+input::placeholder {
+    color: #bbb;
+}
+.price {
+    color: #ff6b6b;
+}
+.title {
+    color: #ffffff !important;
+}
+
+.title :hover{
+    color: cadetblue;
+}
+.title-page {
+    color: #ff4d4d;
+}
+.badge {
+    background-color: #ff4d4d;
+    color: #fff;
+}
+.card-product-grid:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(128, 31, 31, 0.5);
+    transition: all 0.6s;
+}
+
+</style>
+
 </head>
 <body>
 
 <header class="section-header">
 <section class="header-main border-bottom">
 <div class="container">
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<nav class="navbar navbar-expand-lg navbar-dark">
     <a class="navbar-brand" href="{{ url_for('index') }}">
         <img class="logo" src="{{ url_for('static', filename='images/neo4j_logo_globe.png') }}">
     </a>
@@ -46,15 +121,15 @@
             <li class="nav-item"><a class="nav-link" href="{{ url_for('writers') }}">Зохиолч</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('producers') }}">Продюсер</a></li>
             {% if session.get('role') == 'admin' %}
-            <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('add_movie') }}">Кино нэмэх</a></li>
-            <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('add_person') }}">Хүн нэмэх</a></li>
+            <li class="nav-item"><a class="nav-link text-succes" href="{{ url_for('add_movie') }}">Кино нэмэх</a></li>
+            <li class="nav-item"><a class="nav-link text-succes" href="{{ url_for('add_person') }}">Хүн нэмэх</a></li>
             {% endif %}
         </ul>
 
         <ul class="navbar-nav ms-auto">
             {% if session.get('username') %}
                 <li class="nav-item">
-                    <span class="navbar-text text-light me-2">Сайн байна уу, {{ session['username'] }}!</span>
+                    <span class="navbar-text me-2">Сайн байна уу, {{ session['username'] }}!</span>
                 </li>
                 <li class="nav-item">
                     <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Гарах</a>
@@ -71,7 +146,7 @@
 </section>
 </header>
 
-<section class="section-pagetop bg-light">
+<section class="section-pagetop bs-dark">
 <div class="container">
     <h2 class="title-page">Кинонууд</h2>
 </div>
@@ -86,12 +161,11 @@
                 <header class="card-header"><h6 class="title">Киноны нэрээр хайх</h6></header>
                 <div class="card-body">
                     <form method="get" action="{{ url_for('index') }}">
-    <input type="text" name="txtMovieTitle" placeholder="Киноны нэр" value="{{ query }}">
-    <input type="number" name="year_from" placeholder="Эхний он" value="{{ year_from }}">
-    <input type="number" name="year_to" placeholder="Сүүлийн он" value="{{ year_to }}">
-    <button type="submit" class="btn btn-primary">Хайх</button>
-</form>
-
+                        <input type="text" name="txtMovieTitle" placeholder="Киноны нэр" value="{{ query }}">
+                        <input type="number" name="year_from" placeholder="Эхний он" value="{{ year_from }}">
+                        <input type="number" name="year_to" placeholder="Сүүлийн он" value="{{ year_to }}">
+                        <button type="submit" class="btn btn-danger">Хайх</button>
+                    </form>
                 </div>
             </article>
         </div>

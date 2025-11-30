@@ -6,10 +6,36 @@
     <title>{% block title %}Movie App{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui.css') }}">
+    <style>
+        body {
+            background-color: #1b1b1b; /* хар фон */
+            color: #f0f0f0; /* цагаан текст */
+        }
+        .navbar {
+            background-color: #070707 !important; /* улаан navbar */
+        }
+        .navbar .nav-link {
+            color: #f0f0f0 !important;
+        }
+        .navbar .nav-link:hover {
+            color: #ff4444 !important;
+        }
+        .card, .card-product-grid {
+            background-color: #2a2a2a; /* картын хар фон */
+            border: none;
+        }
+        a {
+            color: #ff4444;
+        }
+        a:hover {
+            color: #000000;
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <a class="navbar-brand" href="{{ url_for('index') }}">Movie App</a>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <a class="navbar-brand text-light" href="{{ url_for('index') }}">Movie App</a>
     <div class="collapse navbar-collapse">
         <ul class="navbar-nav me-auto">
             <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Кино</a></li>
@@ -32,5 +58,6 @@
 <div class="container mt-4">
     {% block content %}{% endblock %}
 </div>
+
 </body>
 </html>

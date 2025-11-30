@@ -7,10 +7,81 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui.css') }}">
+
+    <style>
+    /* Red-Black Dark Theme */
+    body {
+        background-color: #121212;
+        color: #f0f0f0;
+    }
+    .navbar-dark {
+        background-color: #1b1b1b;
+    }
+    .navbar-dark .navbar-brand, .navbar-dark .navbar-nav .nav-link {
+        color: #f0f0f0;
+    }
+    .navbar-dark .navbar-nav .nav-link:hover {
+        color: #ff4d4d;
+    }
+    .container {
+        background-color: #1b1b1b;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    h2, h3, h4, h5 {
+        color: #ff4d4d;
+    }
+    .img-fluid {
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(255, 77, 77, 0.4);
+    }
+    .lead, .text-muted {
+        color: #ffffff;
+    }
+    .list-group-item {
+        background-color: #2a2a2a;
+        color: #f0f0f0;
+        border: none;
+    }
+    .btn-primary {
+        background-color: #ff4d4d;
+        border-color: #ff4d4d;
+        color: #fff;
+    }
+    .btn-primary:hover {
+        background-color: #e03e3e;
+        border-color: #e03e3e;
+    }
+    .btn-warning {
+        background-color: #ff6b4d;
+        border-color: #ff6b4d;
+        color: #fff;
+    }
+    .btn-danger {
+        background-color: #d43f3f;
+        border-color: #d43f3f;
+        color: #fff;
+    }
+    textarea, input {
+        background-color: #2a2a2a;
+        color: #f0f0f0;
+        border: 1px solid #444;
+    }
+    textarea::placeholder, input::placeholder {
+        color: #bbb;
+    }
+    a {
+        color: #9b9b9b;
+    }
+    a:hover {
+        color: #802a2a;
+    }
+    
+    </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<nav class="navbar navbar-expand-lg navbar-dark">
     <a class="navbar-brand" href="{{ url_for('index') }}">Movie App</a>
 </nav>
 
@@ -21,15 +92,11 @@
     <h2>{{ movie.title }} ({{ movie.year }})</h2>
 
     <img src="{{ url_for('static', filename='movies/' + (movie.image or 'default.jpg')) }}"
-         alt="{{ movie.title }}" class="img-fluid rounded shadow mb-3">
+         alt="{{ movie.title }}" class="img-fluid mb-3">
 
     {% if movie.avg_rating %}
         <p class="lead"><strong>Дундаж үнэлгээ:</strong> {{ movie.avg_rating }}/10</p>
     {% endif %}
-
-    <!-- =========================================================== -->
-    <!--                         КИНО БАГ                            -->
-    <!-- =========================================================== -->
 
     <h3 class="mt-4">Кино баг</h3>
 
@@ -43,11 +110,8 @@
                 <img src="{{ url_for('static', filename='people/' + (person.image or 'default.jpg')) }}"
                      class="img-fluid rounded"
                      style="height:150px; object-fit:cover;">
-
                 <p class="mt-2">
-                    <a href="{{ url_for('person_detail', name=person.name) }}">
-                        {{ person.name }}
-                    </a>
+                    <a href="{{ url_for('person_detail', name=person.name) }}">{{ person.name }}</a>
                 </p>
             </div>
             {% endfor %}
@@ -61,10 +125,6 @@
     {{ team_block("Найруулагч", directors) }}
     {{ team_block("Зохиолч", writers) }}
     {{ team_block("Продюсер", producers) }}
-
-    <!-- =========================================================== -->
-    <!--                         СЭТГЭГДЭЛ                           -->
-    <!-- =========================================================== -->
 
     <h4 class="mt-5">Сэтгэгдэл</h4>
 
@@ -81,15 +141,14 @@
         <p class="text-muted">Сэтгэгдэл байхгүй байна.</p>
     {% endif %}
 
-    <!-- ADMIN SECTION -->
     {% if session.get('role') == 'admin' %}
         <hr>
         <h4>Кино баг нэмэх (Админ)</h4>
-
+        
         <ul class="small">
             {% for person in people %}
                 <li>
-                    {{ person.name }} —
+                    {{ person.name }} — 
                     <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='ACTED_IN') }}">Жүжигчин</a>,
                     <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='DIRECTED') }}">Найруулагч</a>,
                     <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='WROTE') }}">Зохиолч</a>,
@@ -102,14 +161,11 @@
             <a href="{{ url_for('edit_movie', title=movie.title) }}" class="btn btn-warning btn-sm">Засах</a>
 
             <form action="{{ url_for('delete_movie', title=movie.title) }}" method="POST" style="display:inline;">
-                <button class="btn btn-danger btn-sm" onclick="return confirm('Энэ киног устгах уу?');">
-                    Устгах
-                </button>
+                <button class="btn btn-danger btn-sm" onclick="return confirm('Энэ киног устгах уу?');">Устгах</button>
             </form>
         </div>
     {% endif %}
 
-    <!-- REVIEW FORM -->
     {% if session.get('username') and session.get('role') != 'guest' %}
         <hr>
         <h5>Шинэ санал нэмэх:</h5>
@@ -119,7 +175,6 @@
             <input type="number" name="rating" min="1" max="10" class="form-control mb-2" placeholder="Үнэлгээ (1-10)" required>
             <button class="btn btn-primary">Нэмэх</button>
         </form>
-
     {% else %}
         <p class="text-muted mt-3">Сэтгэгдэл үлдээхийн тулд нэвтэрсэн байх шаардлагатай.</p>
     {% endif %}
@@ -133,3 +188,4 @@
 <script src="{{ url_for('static', filename='js/bootstrap.bundle.js') }}"></script>
 </body>
 </html>
+    

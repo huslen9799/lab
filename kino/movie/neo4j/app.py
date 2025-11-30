@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from myneo4j import Neo4jConnection
 import os
-
+import bcrypt
 # ----------------------------
 # Flask setup
 # ----------------------------
@@ -50,7 +50,7 @@ def index():
         query += f" AND toLower(m.title) CONTAINS toLower('{safe_text}')"
 
     # Он дээр шүүх
-    if year_from.isdigit():
+    if year_from.isdigit(): 
         query += f" AND m.released >= {year_from}"
     if year_to.isdigit():
         query += f" AND m.released <= {year_to}"
@@ -99,16 +99,70 @@ def register():
         username = request.form.get('username').strip()
         password = request.form.get('password').strip()
         confirm = request.form.get('confirm').strip()
-        if username in USERS:
+
+        if password != confirm:
+            error = "Нууц үг таарахгүй байна!"
+            return render_template("register.html", error=error)
+
+        # Neo4j дээр давхар хэрэглэгч байгаа эсэх шалгах
+        check_query = "MATCH (u:User {{username: '{}'}}) RETURN u".format(username.replace("'", "\\'"))
+        session['username'] = username
+        session['role'] = 'member'
+
+
+        existing = conn.query(check_query)
+        if existing:
             error = "Энэ хэрэглэгчийн нэр аль хэдийн ашиглагдсан байна!"
-        elif password != confirm:
+            return render_template("register.html", error=error)
+
+        # Хэрэглэгч нэмэх
+        create_query = f"CREATE (u:User {{username: '{username.replace('\'','\\\'')}', password: '{password}'}})"
+        conn.query(create_query)
+
+        # Session тохируулах
+        session['username'] = username
+        session['role'] = 'member'
+
+        return redirect(url_for('index'))
+
+    return render_template("register.html", error=error)
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form.get("email")
+        # TODO: reset password логик энд нэмэх
+        return "Password reset instructions sent!"  
+    return render_template("forgot_password.html")
+
+@app.route("/reset_password_direct", methods=["GET", "POST"])
+def reset_password_direct():
+    error = None
+    success = None
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        new_password = request.form.get("new_password", "").strip()
+        confirm = request.form.get("confirm", "").strip()
+
+        if new_password != confirm:
             error = "Нууц үг таарахгүй байна!"
         else:
-            USERS[username] = {'password': password, 'role': 'member'}
-            session['username'] = username
-            session['role'] = 'member'
-            return redirect(url_for('index'))
-    return render_template("register.html", error=error)
+            # Neo4j дээр хэрэглэгч байгаа эсэхийг шалгах
+            user_check = conn.query(f"MATCH (u:User {{username: '{username.replace('\'','\\\'')}}}) RETURN u")
+            if not user_check:
+                error = "Хэрэглэгч олдсонгүй!"
+            else:
+                # Шинэ нууц үг хадгалах
+                conn.query(f"""
+                    MATCH (u:User {{username: '{username.replace('\'','\\\'')}}})
+                    SET u.password = '{new_password.replace('\'','\\\'')}'
+                """)
+                success = "Нууц үг амжилттай солигдлоо!"
+
+    return render_template("reset_password_direct.html", error=error, success=success)
+
+
+
 
 # ----------------------------
 # Movie detail + Reviews

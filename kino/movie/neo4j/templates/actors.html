@@ -9,32 +9,33 @@
     {% extends "base.html" %}
 {% block content %}
 
-<section class="section-pagetop bg-light">
+<section class="section-pagetop" style="background-color:#121212; color:#f0f0f0;">
     <div class="container">
-        <h2 class="title-page">Жүжигчид</h2>
+        <h2 class="title-page text-danger">Жүжигчид</h2>
     </div>
 </section>
 
-<section class="section-content padding-y">
+<section class="section-content padding-y" style="background-color:#1b1b1b;">
 <div class="container">
 
     <div class="row">
         {% for actor in actors %}
         <div class="col-md-4 mb-4">
-            <div class="card card-product-grid">
+            <div class="card card-product-grid shadow-sm" style="background-color:#2a2a2a; border:none;">
                 <div class="img-wrap">
-                    <img src="{{ url_for('static', filename='people/' + (actor.image or 'default_person.jpg')) }}">
+                    <img src="{{ url_for('static', filename='people/' + (actor.image or 'default_person.jpg')) }}"
+                         class="img-fluid rounded" style="height:250px; object-fit:cover;">
                 </div>
-                <figcaption class="info-wrap">
-                    <h5><a href="{{ url_for('person_detail', name=actor.name) }}">{{ actor.name }}</a></h5>
-                    <p class="text-muted">Жүжигчин</p>
+                <figcaption class="info-wrap p-3">
+                    <h5><a href="{{ url_for('person_detail', name=actor.name) }}" class="text-danger">{{ actor.name }}</a></h5>
+                    <p class="text-light">Жүжигчин</p>
 
-                    <hr>
+                    <hr style="border-color:#444;">
 
-                    <h6>Тоглосон кинонууд:</h6>
+                    <h6 class="text-light">Тоглосон кинонууд:</h6>
                     <ul>
                         {% for movie in actor.movies %}
-                            <li><a href="{{ url_for('movie_detail', title=movie.title) }}">{{ movie.title }}</a></li>
+                            <li><a href="{{ url_for('movie_detail', title=movie.title) }}" class="text-danger">{{ movie.title }}</a></li>
                         {% endfor %}
                     </ul>
                 </figcaption>
