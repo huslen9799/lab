@@ -4,72 +4,95 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ movie.title if movie else 'Кино мэдээлэл' }} | Movie App</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui.css') }}">
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-  <a class="navbar-brand" href="{{ url_for('index') }}">Movie App</a>
+    <a class="navbar-brand" href="{{ url_for('index') }}">Movie App</a>
 </nav>
 
 <div class="container mt-4">
 
 {% if movie %}
+
     <h2>{{ movie.title }} ({{ movie.year }})</h2>
 
     <img src="{{ url_for('static', filename='movies/' + (movie.image or 'default.jpg')) }}"
-         alt="{{ movie.title }}" class="img-fluid mb-3">
+         alt="{{ movie.title }}" class="img-fluid rounded shadow mb-3">
 
     {% if movie.avg_rating %}
-        <p><strong>Дундаж үнэлгээ:</strong> {{ movie.avg_rating }}/10</p>
+        <p class="lead"><strong>Дундаж үнэлгээ:</strong> {{ movie.avg_rating }}/10</p>
     {% endif %}
 
-    <!-- ================================================================= -->
-    <!--                 🎬 КИНО БАГ — 3,3 СЛАЙДТАЙ CAROUSEL               -->
-    <!-- ================================================================= -->
+    <!-- =========================================================== -->
+    <!--                         КИНО БАГ                            -->
+    <!-- =========================================================== -->
 
     <h3 class="mt-4">Кино баг</h3>
 
-    <h5 class="mt-3">Жүжигчид</h5>
-    {% include "team_carousel.html" with list=actors %}
+    {% macro team_block(label, people) %}
+        <h5 class="mt-3">{{ label }}</h5>
 
-    <h5 class="mt-3">Найруулагч</h5>
-    {% include "team_carousel.html" with list=directors %}
+        {% if people|length > 0 %}
+        <div class="row">
+            {% for person in people %}
+            <div class="col-md-4 col-sm-6 text-center mb-3">
+                <img src="{{ url_for('static', filename='people/' + (person.image or 'default.jpg')) }}"
+                     class="img-fluid rounded"
+                     style="height:150px; object-fit:cover;">
 
-    <h5 class="mt-3">Зохиолч</h5>
-    {% include "team_carousel.html" with list=writers %}
+                <p class="mt-2">
+                    <a href="{{ url_for('person_detail', name=person.name) }}">
+                        {{ person.name }}
+                    </a>
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <p class="text-muted">Мэдээлэл байхгүй.</p>
+        {% endif %}
+    {% endmacro %}
 
-    <h5 class="mt-3">Продюсер</h5>
-    {% include "team_carousel.html" with list=producers %}
+    {{ team_block("Жүжигчид", actors) }}
+    {{ team_block("Найруулагч", directors) }}
+    {{ team_block("Зохиолч", writers) }}
+    {{ team_block("Продюсер", producers) }}
 
-    <!-- ======================  СЭТГЭГДЭЛ  ========================== -->
+    <!-- =========================================================== -->
+    <!--                         СЭТГЭГДЭЛ                           -->
+    <!-- =========================================================== -->
 
-    <h4 class="mt-4">Сэтгэгдэл:</h4>
+    <h4 class="mt-5">Сэтгэгдэл</h4>
 
     {% if movie.reviews %}
-    <ul>
-        {% for review in movie.reviews %}
-            <li>{{ review.username }} – <strong>{{ review.rating }}/10</strong>: {{ review.summary }}</li>
-        {% endfor %}
-    </ul>
+        <ul class="list-group mb-3">
+            {% for review in movie.reviews %}
+            <li class="list-group-item">
+                <strong>{{ review.username }}</strong> — {{ review.rating }}/10<br>
+                <span>{{ review.summary }}</span>
+            </li>
+            {% endfor %}
+        </ul>
     {% else %}
-        <p>Сэтгэгдэл байхгүй байна.</p>
+        <p class="text-muted">Сэтгэгдэл байхгүй байна.</p>
     {% endif %}
 
-    <!-- ======================  ADMIN PART  ========================== -->
-
+    <!-- ADMIN SECTION -->
     {% if session.get('role') == 'admin' %}
         <hr>
-        <h4>Кино баг нэмэх (Админ):</h4>
-        <ul>
+        <h4>Кино баг нэмэх (Админ)</h4>
+
+        <ul class="small">
             {% for person in people %}
                 <li>
-                    {{ person.name }}
-                    —
-                    <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='ACTED_IN') }}">Жүжигчин</a>
-                    <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='DIRECTED') }}">Найруулагч</a>
-                    <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='WROTE') }}">Зохиолч</a>
+                    {{ person.name }} —
+                    <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='ACTED_IN') }}">Жүжигчин</a>,
+                    <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='DIRECTED') }}">Найруулагч</a>,
+                    <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='WROTE') }}">Зохиолч</a>,
                     <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='PRODUCED') }}">Продюсер</a>
                 </li>
             {% endfor %}
@@ -78,8 +101,7 @@
         <div class="mt-3">
             <a href="{{ url_for('edit_movie', title=movie.title) }}" class="btn btn-warning btn-sm">Засах</a>
 
-            <form action="{{ url_for('delete_movie', title=movie.title) }}"
-                  method="POST" style="display:inline;">
+            <form action="{{ url_for('delete_movie', title=movie.title) }}" method="POST" style="display:inline;">
                 <button class="btn btn-danger btn-sm" onclick="return confirm('Энэ киног устгах уу?');">
                     Устгах
                 </button>
@@ -87,19 +109,19 @@
         </div>
     {% endif %}
 
-    <!-- ======================  ADD REVIEW  ========================== -->
-
+    <!-- REVIEW FORM -->
     {% if session.get('username') and session.get('role') != 'guest' %}
         <hr>
         <h5>Шинэ санал нэмэх:</h5>
+
         <form method="post" action="{{ url_for('add_review', title=movie.title) }}">
-            <textarea class="form-control mb-2" name="summary" placeholder="Санал..." required></textarea>
-            <input type="number" class="form-control mb-2" name="rating" min="1" max="10"
-                   placeholder="Үнэлгээ (1-10)" required>
-            <button type="submit" class="btn btn-primary">Нэмэх</button>
+            <textarea name="summary" class="form-control mb-2" placeholder="Сэтгэгдэл..." required></textarea>
+            <input type="number" name="rating" min="1" max="10" class="form-control mb-2" placeholder="Үнэлгээ (1-10)" required>
+            <button class="btn btn-primary">Нэмэх</button>
         </form>
+
     {% else %}
-        <p>Сэтгэгдэл үлдээхийн тулд нэвтэрсэн байх шаардлагатай.</p>
+        <p class="text-muted mt-3">Сэтгэгдэл үлдээхийн тулд нэвтэрсэн байх шаардлагатай.</p>
     {% endif %}
 
 {% else %}

@@ -6,8 +6,12 @@
     <title>Document</title>
 </head>
 <body>
-    {% if list|length > 0 %}
-<div id="carousel-{{ list|length }}-{{ loop.index0 }}" class="carousel slide" data-bs-ride="carousel">
+
+{% if list and list|length > 0 %}
+
+{% set cid = "carousel-" ~ (list|length) ~ "-" ~ (range(1)|random) %}
+
+<div id="{{ cid }}" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-inner">
 
         {% for group in list|batch(3, fill_with=None) %}
@@ -29,14 +33,16 @@
 
     </div>
 
-    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ list|length }}-{{ loop.index0 }}" data-bs-slide="prev">
+    <button class="carousel-control-prev" type="button" data-bs-target="#{{ cid }}" data-bs-slide="prev">
         <span class="carousel-control-prev-icon"></span>
     </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ list|length }}-{{ loop.index0 }}" data-bs-slide="next">
+
+    <button class="carousel-control-next" type="button" data-bs-target="#{{ cid }}" data-bs-slide="next">
         <span class="carousel-control-next-icon"></span>
     </button>
 
 </div>
+
 {% else %}
 <p class="text-muted">Мэдээлэл алга.</p>
 {% endif %}
