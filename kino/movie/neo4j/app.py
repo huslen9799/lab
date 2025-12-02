@@ -28,9 +28,6 @@ conn = Neo4jConnection(uri="neo4j://127.0.0.1:7687", user="neo4j", pwd="12345678
 # Users
 # ----------------------------
 USERS = {
-    'guest': {'password': '', 'role': 'guest'},
-    'member': {'password': 'member123', 'role': 'member'},
-     'Huslen': {'password': 'huslen123', 'role': 'member'},
     'admin': {'password': 'admin123', 'role': 'admin'}
 }
 
@@ -72,21 +69,50 @@ def index():
 
 # ----------------------------
 # Login / Logout / Register
-# ----------------------------
+# Admin хэрэглэгчийн мэдээлэл
+USERS = {
+    "admin": "admin_password:admin123 "  # өөрийн хүссэн нууц үг
+}
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        username = request.form.get('username').strip()
-        password = request.form.get('password').strip()
-        user = USERS.get(username)
-        if user and user['password'] == password:
-            session['username'] = username
-            session['role'] = user['role']
-            return redirect(url_for('index'))
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+
+        # 1️⃣ Admin USERS dict-аас шалгах
+        user_info = USERS.get(username)
+        if user_info and isinstance(user_info, dict):
+            if user_info.get('password') == password:
+                session["username"] = username
+                session["role"] = user_info.get('role', 'admin')
+                return redirect(url_for('index'))
+            else:
+                error = "Нууц үг буруу байна!"
         else:
-            error = "Нэвтрэхэд алдаа гарлаа!"
+            # 2️⃣ Neo4j-аас бусад хэрэглэгч шалгах
+            query = f"""
+                MATCH (u:User {{username: '{username.replace("'", "\\'")}'}})
+                RETURN u.password AS password, u.role AS role
+            """
+            result = conn.query(query)
+
+            if not result:
+                error = "Хэрэглэгч олдсонгүй!"
+            else:
+                stored_pw = result[0].get('password')
+                user_role = result[0].get('role', 'member')
+
+                if stored_pw == password:
+                    session["username"] = username
+                    session["role"] = user_role
+                    return redirect(url_for('index'))
+                else:
+                    error = "Нууц үг буруу байна!"
+
     return render_template("login.html", error=error)
+
+
 
 @app.route("/logout")
 def logout():
@@ -102,65 +128,75 @@ def register():
         confirm = request.form.get('confirm').strip()
 
         if password != confirm:
-            error = "Нууц үг таарахгүй байна!"
-            return render_template("register.html", error=error)
+            return render_template("register.html", error="Нууц үг таарахгүй!")
 
-        # Neo4j дээр давхар хэрэглэгч байгаа эсэх шалгах
-        check_query = "MATCH (u:User {{username: '{}'}}) RETURN u".format(username.replace("'", "\\'"))
+        # Давхар хэрэглэгч байгаа эсэх
+        check = conn.query(f"""
+            MATCH (u:User {{username: '{username.replace("'", "\\'")}'}})
+            RETURN u
+        """)
+
+        if check:
+            return render_template("register.html", error="Хэрэглэгчийн нэр давхцаж байна!")
+
+        # Хэрэглэгч үүсгэх (default role = member)
+        conn.query(f"""
+            CREATE (u:User {{
+                username:'{username.replace("'", "\\'")}', 
+                password:'{password.replace("'", "\\'")}',
+                role:'member'
+            }})
+        """)
+
+        # Session
         session['username'] = username
-        session['role'] = 'member'
-
-
-        existing = conn.query(check_query)
-        if existing:
-            error = "Энэ хэрэглэгчийн нэр аль хэдийн ашиглагдсан байна!"
-            return render_template("register.html", error=error)
-
-        # Хэрэглэгч нэмэх
-        create_query = f"CREATE (u:User {{username: '{username.replace('\'','\\\'')}', password: '{password}'}})"
-        conn.query(create_query)
-
-        # Session тохируулах
-        session['username'] = username
-        session['role'] = 'member'
-
+        session['role'] = "member"
         return redirect(url_for('index'))
 
     return render_template("register.html", error=error)
+
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
-    if request.method == "POST":
-        email = request.form.get("email")
-        # TODO: reset password логик энд нэмэх
-        return "Password reset instructions sent!"  
-    return render_template("forgot_password.html")
-
-@app.route("/reset_password_direct", methods=["GET", "POST"])
-def reset_password_direct():
     error = None
     success = None
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
-        new_password = request.form.get("new_password", "").strip()
-        confirm = request.form.get("confirm", "").strip()
+
+        user = conn.query(f"""
+            MATCH (u:User {{username:'{username.replace("'", "\\'")}'}})
+            RETURN u
+        """)
+
+        if not user:
+            error = "Ийм хэрэглэгч байхгүй!"
+        else:
+            # Reset page рүү шилжих
+            return redirect(url_for("reset_password_direct", username=username))
+
+    # ❗ Хамгийн чухал — GET үед HTML буцаах!!
+    return render_template("forgot_password.html", error=error, success=success)
+
+
+@app.route("/reset/<username>", methods=["GET", "POST"])
+def reset_password_direct(username):
+    error = None
+    success = None
+
+    if request.method == "POST":
+        new_password = request.form.get("new_password").strip()
+        confirm = request.form.get("confirm").strip()
 
         if new_password != confirm:
             error = "Нууц үг таарахгүй байна!"
         else:
-            # Neo4j дээр хэрэглэгч байгаа эсэхийг шалгах
-            user_check = conn.query(f"MATCH (u:User {{username: '{username.replace('\'','\\\'')}}}) RETURN u")
-            if not user_check:
-                error = "Хэрэглэгч олдсонгүй!"
-            else:
-                # Шинэ нууц үг хадгалах
-                conn.query(f"""
-                    MATCH (u:User {{username: '{username.replace('\'','\\\'')}}})
-                    SET u.password = '{new_password.replace('\'','\\\'')}'
-                """)
-                success = "Нууц үг амжилттай солигдлоо!"
+            conn.query(f"""
+                MATCH (u:User {{username:'{username.replace("'", "\\'")}'}})
+                SET u.password = '{new_password.replace("'", "\\'")}'
+            """)
+            success = "Нууц үг амжилттай солигдлоо!"
 
-    return render_template("reset_password_direct.html", error=error, success=success)
+    return render_template("reset_password_direct.html", username=username, error=error, success=success)
 
 
 
