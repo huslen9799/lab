@@ -12,30 +12,35 @@
             color: #f0f0f0; /* цагаан текст */
         }
         .navbar {
-            background-color: #070707 !important; /* улаан navbar */
+            background-color: #7d3de6 !important; /* улаан navbar */
         }
         .navbar .nav-link {
             color: #f0f0f0 !important;
         }
         .navbar .nav-link:hover {
-            color: #ff4444 !important;
+            color: #000000 !important;
         }
         .card, .card-product-grid {
-            background-color: #2a2a2a; /* картын хар фон */
+            background-color: #363636; /* картын хар фон */
             border: none;
         }
+        .card, .card-product-grid:hover{
+             transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(109, 86, 173, 0.5);
+    transition: all 0.6s;
+        }
         a {
-            color: #ff4444;
+            color: #7d3de6;
         }
         a:hover {
-            color: #000000;
+            color: #b04aeb;
         }
     </style>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark">
-    <a class="navbar-brand text-light" href="{{ url_for('index') }}">Movie App</a>
+    <a class="navbar-brand text-light" href="{{ url_for('index') }}">HuslenTV</a>
     <div class="collapse navbar-collapse">
         <ul class="navbar-nav me-auto">
             <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Кино</a></li>

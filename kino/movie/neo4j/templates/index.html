@@ -27,11 +27,11 @@
 <style>
 /* Red-Black Dark Theme Overrides */
 body {
-    background-color: #121212;
-    color: #f0f0f0;
+    background-color: #ffffff !important;
+    color: #ffffff;
 }
 .navbar-dark {
-    background-color: #1b1b1b;
+    background-color: #7d3de6;
 }
 .navbar-dark .navbar-nav .nav-link {
     color: #f0f0f0;
@@ -43,28 +43,28 @@ body {
     color: #f0f0f0;
 }
 .section-header, .section-footer, .section-pagetop, .section-content {
-    background-color: #1b1b1b;
+    background-color: #202020;
 }
 .card {
-    background-color: #2a2a2a;
+    background-color: #363636;
     color: #f0f0f0;
     border: none;
 }
 .card-header {
-    background-color: #2a2a2a;
+    background-color: #363636;
     color: #f0f0f0;
 }
 .card-product-grid .img-wrap {
-    background-color: #2a2a2a;
+    background-color: #363636;
 }
 .btn-primary {
-    background-color: #ff4d4d;
-    border-color: #ff4d4d;
+    background-color: #7d3de6;
+    border-color: #000000;
     color: #fff;
 }
 .btn-primary:hover {
-    background-color: #e03e3e;
-    border-color: #e03e3e;
+    background-color: #3e1357;
+    border-color: #000000;
 }
 input, textarea {
     background-color: #2a2a2a;
@@ -75,7 +75,7 @@ input::placeholder {
     color: #bbb;
 }
 .price {
-    color: #ff6b6b;
+    color: #7dbdbd;
 }
 .title {
     color: #ffffff !important;
@@ -85,18 +85,21 @@ input::placeholder {
     color: cadetblue;
 }
 .title-page {
-    color: #ff4d4d;
+    color: #7d3de6;
 }
 .badge {
-    background-color: #ff4d4d;
+    background-color: #ffffff;
     color: #fff;
 }
 .card-product-grid:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(128, 31, 31, 0.5);
-    transition: all 0.6s;
+    box-shadow: 0 8px 20px rgba(109, 86, 173, 0.5);
+    transition: all 0.3s;
 }
-
+.logo{
+    height: 110px;
+    width: 50px;
+}
 </style>
 
 </head>
@@ -107,7 +110,7 @@ input::placeholder {
 <div class="container">
 <nav class="navbar navbar-expand-lg navbar-dark">
     <a class="navbar-brand" href="{{ url_for('index') }}">
-        <img class="logo" src="{{ url_for('static', filename='images/neo4j_logo_globe.png') }}">
+        <img class="logo" src="{{ url_for('static', filename='images/asaa.jpg') }}">
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
@@ -146,7 +149,7 @@ input::placeholder {
 </section>
 </header>
 
-<section class="section-pagetop bs-dark">
+<section class="section-pagetop bs-light">
 <div class="container">
     <h2 class="title-page">Кинонууд</h2>
 </div>
@@ -164,7 +167,7 @@ input::placeholder {
                         <input type="text" name="txtMovieTitle" placeholder="Киноны нэр" value="{{ query }}">
                         <input type="number" name="year_from" placeholder="Эхний он" value="{{ year_from }}">
                         <input type="number" name="year_to" placeholder="Сүүлийн он" value="{{ year_to }}">
-                        <button type="submit" class="btn btn-danger">Хайх</button>
+                        <button style="margin-top: 10px;" type="submit" class="btn btn-primary">Хайх</button>
                     </form>
                 </div>
             </article>

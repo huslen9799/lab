@@ -21,7 +21,7 @@
     <div class="row">
         {% for actor in actors %}
         <div class="col-md-4 mb-4">
-            <div class="card card-product-grid shadow-sm" style="background-color:#2a2a2a; border:none;">
+            <div class="card card-product-grid shadow-sm" style="background-color:#363636; border:none;">
                 <div class="img-wrap">
                     <img src="{{ url_for('static', filename='people/' + (actor.image or 'default_person.jpg')) }}"
                          class="img-fluid rounded" style="height:250px; object-fit:cover;">
