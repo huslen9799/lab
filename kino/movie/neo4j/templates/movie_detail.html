@@ -1,83 +1,30 @@
 <!DOCTYPE html>
 <html lang="mn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ movie.title if movie else 'Кино мэдээлэл' }} | Movie App</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ movie.title if movie else 'Кино мэдээлэл' }} | Movie App</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ui.css') }}">
 
-    <style>
-    /* Red-Black Dark Theme */
-    body {
-        background-color: #121212;
-        color: #f0f0f0;
-    }
-    .navbar-dark {
-        background-color: #1b1b1b;
-    }
-    .navbar-dark .navbar-brand, .navbar-dark .navbar-nav .nav-link {
-        color: #f0f0f0;
-    }
-    .navbar-dark .navbar-nav .nav-link:hover {
-        color: #b04aeb;
-    }
-    .container {
-        background-color: #1b1b1b;
-        padding: 20px;
-        border-radius: 8px;
-    }
-    h2, h3, h4, h5 {
-        color: #7d3de6;
-    }
-    .img-fluid {
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(109, 86, 173, 0.5);
-    }
-    .lead, .text-muted {
-        color: #ffffff;
-    }
-    .list-group-item {
-        background-color: #2a2a2a;
-        color: #f0f0f0;
-        border: none;
-    }
-    .btn-primary {
-        background-color: #7d3de6;
-        border-color: #7d3de6;
-        color: #fff;
-    }
-    .btn-primary:hover {
-        background-color: #e03e3e;
-        border-color: #e03e3e;
-    }
-    .btn-warning {
-        background-color: #ff6b4d;
-        border-color: #ff6b4d;
-        color: #fff;
-    }
-    .btn-danger {
-        background-color: #e63d3d;
-        border-color: #e63d3d;
-        color: #fff;
-    }
-    textarea, input {
-        background-color: #2a2a2a;
-        color: #f0f0f0;
-        border: 1px solid #444;
-    }
-    textarea::placeholder, input::placeholder {
-        color: #bbb;
-    }
-    a {
-        color: #9b9b9b;
-    }
-    a:hover {
-        color: #b04aeb;
-    }
-    
-    </style>
+<style>
+body { background-color: #121212; color: #f0f0f0; }
+.navbar-dark { background-color: #1b1b1b; }
+.navbar-dark .navbar-brand, .navbar-dark .navbar-nav .nav-link { color: #f0f0f0; }
+.navbar-dark .navbar-nav .nav-link:hover { color: #b04aeb; }
+.container { background-color: #1b1b1b; padding: 20px; border-radius: 8px; }
+h2, h3, h4, h5 { color: #7d3de6; }
+.img-fluid { border-radius: 8px; box-shadow: 0 4px 12px rgba(109, 86, 173, 0.5); }
+.lead, .text-muted { color: #ffffff; }
+.list-group-item { background-color: #2a2a2a; color: #f0f0f0; border: none; }
+.btn-primary { background-color: #7d3de6; border-color: #7d3de6; color: #fff; }
+.btn-primary:hover { background-color: #e03e3e; border-color: #e03e3e; }
+textarea, input { background-color: #2a2a2a; color: #f0f0f0; border: 1px solid #444; }
+textarea::placeholder, input::placeholder { color: #bbb; }
+a { color: #9b9b9b; }
+a:hover { color: #b04aeb; }
+</style>
 </head>
 <body>
 
@@ -90,7 +37,6 @@
 {% if movie %}
 
     <h2>{{ movie.title }} ({{ movie.year }})</h2>
-
     <img src="{{ url_for('static', filename='movies/' + (movie.image or 'default.jpg')) }}"
          alt="{{ movie.title }}" class="img-fluid mb-3">
 
@@ -100,26 +46,29 @@
 
     <h3 class="mt-4">Кино баг</h3>
 
-    {% macro team_block(label, people) %}
-        <h5 class="mt-3">{{ label }}</h5>
-
-        {% if people|length > 0 %}
-        <div class="row">
-            {% for person in people %}
-            <div class="col-md-4 col-sm-6 text-center mb-3">
-                <img src="{{ url_for('static', filename='people/' + (person.image or 'default.jpg')) }}"
-                     class="img-fluid rounded"
-                     style="height:150px; object-fit:cover;">
-                <p class="mt-2">
-                    <a href="{{ url_for('person_detail', name=person.name) }}">{{ person.name }}</a>
-                </p>
-            </div>
-            {% endfor %}
+{% macro team_block(label, people) %}
+    <h5 class="mt-3">{{ label }}</h5>
+    {% if people|length > 0 %}
+    <div class="row" id="{{ label|lower }}-container">
+        {% for person in people %}
+        <div class="col-md-4 col-sm-6 text-center mb-3">
+            <img src="{{ url_for('static', filename='people/' + (person.image or 'default.jpg')) }}"
+                 class="img-fluid rounded" style="height:150px; object-fit:cover;">
+            <p class="mt-2">
+                <a href="{{ url_for('person_detail', name=person.name) }}">{{ person.name }}</a>
+                {% if label == "Жүжигчид" and person.alias and person.alias != person.name %}
+                    ({{ person.alias }})
+                {% endif %}
+            </p>
         </div>
-        {% else %}
-            <p class="text-muted">Мэдээлэл байхгүй.</p>
-        {% endif %}
-    {% endmacro %}
+        {% endfor %}
+    </div>
+    {% else %}
+        <p class="text-muted">Мэдээлэл байхгүй.</p>
+    {% endif %}
+{% endmacro %}
+
+
 
     {{ team_block("Жүжигчид", actors) }}
     {{ team_block("Найруулагч", directors) }}
@@ -127,60 +76,158 @@
     {{ team_block("Продюсер", producers) }}
 
     <h4 class="mt-5">Сэтгэгдэл</h4>
+{% if movie.reviews %}
+    <ul class="list-group mb-3">
+        {% for review in movie.reviews %}
+        <li class="list-group-item">
+            <strong>{{ review.username }}</strong> — {{ review.rating }}/10<br>
+            <span>{{ review.summary }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p class="text-muted">Сэтгэгдэл байхгүй байна.</p>
+{% endif %}
 
-    {% if movie.reviews %}
-        <ul class="list-group mb-3">
-            {% for review in movie.reviews %}
-            <li class="list-group-item">
-                <strong>{{ review.username }}</strong> — {{ review.rating }}/10<br>
-                <span>{{ review.summary }}</span>
-            </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p class="text-muted">Сэтгэгдэл байхгүй байна.</p>
-    {% endif %}
 
+    <!-- Admin: Кино баг нэмэх -->
     {% if session.get('role') == 'admin' %}
-        <hr>
-        <h4>Кино баг нэмэх (Админ)</h4>
-        
-        <ul class="small">
-            {% for person in people %}
-                <li>
-                    {{ person.name }} — 
-                    <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='ACTED_IN') }}">Жүжигчин</a>,
-                    <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='DIRECTED') }}">Найруулагч</a>,
-                    <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='WROTE') }}">Зохиолч</a>,
-                    <a href="{{ url_for('add_member_quick', title=movie.title, person_name=person.name, role='PRODUCED') }}">Продюсер</a>
-                </li>
-            {% endfor %}
-        </ul>
+    <hr>
+    <h4>Кино баг нэмэх (Админ)</h4>
 
-        <div class="mt-3">
-            <a href="{{ url_for('edit_movie', title=movie.title) }}" class="btn btn-warning btn-sm">Засах</a>
+    <label>Жүжигчнийг нэрээр хайх:</label>
+    <input type="text" id="person-search" class="form-control" placeholder="Жүжигчний нэр...">
+    <div id="results" class="list-group mt-2"></div>
 
-            <form action="{{ url_for('delete_movie', title=movie.title) }}" method="POST" style="display:inline;">
-                <button class="btn btn-danger btn-sm" onclick="return confirm('Энэ киног устгах уу?');">Устгах</button>
-            </form>
+    <input type="hidden" id="movie-title" value="{{ movie.title }}">
+
+    <form id="add-form" style="display:none;" class="mt-3">
+        <input type="hidden" id="selected-person">
+        <label>Роль сонгох:</label>
+        <select id="role-select" class="form-control">
+            <option value="ACTED_IN">Жүжигчин</option>
+            <option value="DIRECTED">Найруулагч</option>
+            <option value="WROTE">Зохиолч</option>
+            <option value="PRODUCED">Продюсер</option>
+        </select>
+
+        <div id="alias-container" style="display:none; margin-top:5px;">
+            <label>Дурийн нэр:</label>
+            <input type="text" id="alias-input" class="form-control" placeholder="Жишээ: Jack">
         </div>
+
+        <button type="submit" class="btn btn-primary mt-2">Нэмэх</button>
+    </form>
+
+    <script>
+    const searchInput = document.getElementById("person-search");
+    const resultsDiv = document.getElementById("results");
+    const addForm = document.getElementById("add-form");
+    const selectedPerson = document.getElementById("selected-person");
+    const roleSelect = document.getElementById("role-select");
+    const aliasContainer = document.getElementById("alias-container");
+    const aliasInput = document.getElementById("alias-input");
+    const movieTitle = document.getElementById("movie-title").value;
+
+    // Load үед alias харагдах эсэхийг тохируулах
+    aliasContainer.style.display = roleSelect.value === "ACTED_IN" ? "block" : "none";
+    roleSelect.addEventListener("change", () => {
+        aliasContainer.style.display = roleSelect.value === "ACTED_IN" ? "block" : "none";
+    });
+
+    // Person хайх
+    searchInput.addEventListener("input", function(){
+        const q = this.value.trim();
+        if(!q){
+            resultsDiv.innerHTML = "";
+            addForm.style.display = "none";
+            return;
+        }
+
+        fetch(`/search_person?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(data => {
+                let html = "";
+                data.results.forEach(name => {
+                    html += `<button type="button" class="list-group-item list-group-item-action person-item">${name}</button>`;
+                });
+                resultsDiv.innerHTML = html;
+
+                document.querySelectorAll(".person-item").forEach(btn=>{
+                    btn.onclick = () => {
+                        searchInput.value = btn.innerText;
+                        selectedPerson.value = btn.innerText;
+                        resultsDiv.innerHTML = "";
+                        addForm.style.display = "block";
+                    };
+                });
+            });
+    });
+
+    // Кино багт нэмэх
+    addForm.addEventListener("submit", function(e){
+        e.preventDefault();
+        const person = selectedPerson.value.trim();
+        const role = roleSelect.value;
+        const aliasValue = role === "ACTED_IN" ? (aliasInput.value.trim() || person) : null;
+
+        if(!person){
+            alert("Алдаа: Хоосон утга байна!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("person", person);
+        formData.append("role", role);
+        formData.append("movie_title", movieTitle);
+        if(aliasValue) formData.append("alias", aliasValue);
+fetch("/add_member_quick", { method: "POST", body: formData })
+.then(res => res.json())
+.then(data => {
+    alert(data.message);
+    if(data.success){
+        addForm.reset();
+        addForm.style.display = "none";
+
+        const containerId = role === "ACTED_IN" ? "actors-container" :
+                            role === "DIRECTED" ? "directors-container" :
+                            role === "WROTE" ? "writers-container" :
+                            "producers-container";
+
+        const container = document.getElementById(containerId);
+        if(container){
+            const div = document.createElement("div");
+            div.classList.add("col-md-4","col-sm-6","text-center","mb-3");
+
+            div.innerHTML = `
+                <img src="/static/people/default.jpg" class="img-fluid rounded" style="height:150px;object-fit:cover;">
+                <p class="mt-2">${person}${data.alias ? ` (${data.alias})` : ''}</p>
+            `;
+            container.appendChild(div);
+        }
+            }
+        })
+        .catch(err => alert("Алдаа гарлаа: " + err));
+    });
+
+    </script>
     {% endif %}
 
+    <!-- Сэтгэгдэл нэмэх -->
     {% if session.get('username') and session.get('role') != 'guest' %}
-        <hr>
-        <h5>Шинэ санал нэмэх:</h5>
-
-        <form method="post" action="{{ url_for('add_review', title=movie.title) }}">
-            <textarea name="summary" class="form-control mb-2" placeholder="Сэтгэгдэл..." required></textarea>
-            <input type="number" name="rating" min="1" max="10" class="form-control mb-2" placeholder="Үнэлгээ (1-10)" required>
-            <button class="btn btn-primary">Нэмэх</button>
-        </form>
+    <hr>
+    <h5>Шинэ санал нэмэх:</h5>
+    <form method="post" action="{{ url_for('add_review', title=movie.title) }}">
+        <textarea name="summary" class="form-control mb-2" placeholder="Сэтгэгдэл..." required></textarea>
+        <input type="number" name="rating" min="1" max="10" class="form-control mb-2" placeholder="Үнэлгээ (1-10)" required>
+        <button class="btn btn-primary">Нэмэх</button>
+    </form>
     {% else %}
-        <p class="text-muted mt-3">Сэтгэгдэл үлдээхийн тулд нэвтэрсэн байх шаардлагатай.</p>
+    <p class="text-muted mt-3">Сэтгэгдэл үлдээхийн тулд нэвтэрсэн байх шаардлагатай.</p>
     {% endif %}
 
 {% else %}
-    <p>Кино олдсонгүй.</p>
+<p>Кино олдсонгүй.</p>
 {% endif %}
 
 </div>
@@ -188,4 +235,3 @@
 <script src="{{ url_for('static', filename='js/bootstrap.bundle.js') }}"></script>
 </body>
 </html>
-    

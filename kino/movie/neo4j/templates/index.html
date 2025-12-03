@@ -126,6 +126,7 @@ input::placeholder {
             {% if session.get('role') == 'admin' %}
             <li class="nav-item"><a class="nav-link text-succes" href="{{ url_for('add_movie') }}">Кино нэмэх</a></li>
             <li class="nav-item"><a class="nav-link text-succes" href="{{ url_for('add_person') }}">Хүн нэмэх</a></li>
+            
             {% endif %}
         </ul>
 

@@ -1,46 +1,67 @@
 <!DOCTYPE html>
 <html lang="mn">
 <head>
-    <meta charset="UTF-8">
-    <title>Кинонд гишүүн бүртгэх</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кино баг нэмэх | {{ title }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+<style>
+body { background-color:#121212; color:#f0f0f0; padding:20px; }
+.list-group-item { background-color:#2a2a2a; color:#f0f0f0; cursor:pointer; }
+#add-form { display:none; margin-top:10px; }
+</style>
 </head>
 <body>
-<div class="container mt-4">
-    <h2>Кинонд гишүүн бүртгэх</h2>
-    <form method="post">
-        <div class="mb-3">
-            <label for="movie">Кино сонгох:</label>
-            <select class="form-select" name="movie" required>
-                <option value="">-- Сонгох --</option>
-                {% for m in movies %}
-                    <option value="{{ m.title }}">{{ m.title }}</option>
-                {% endfor %}
-            </select>
-        </div>
 
-        <div class="mb-3">
-            <label for="person">Хүн сонгох:</label>
-            <select class="form-select" name="person" required>
-                <option value="">-- Сонгох --</option>
-                {% for p in people %}
-                    <option value="{{ p.name }}">{{ p.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
+<h3>Кино баг нэмэх: {{ title }}</h3>
 
-        <div class="mb-3">
-            <label for="role">Үүрэг:</label>
-            <select class="form-select" name="role" required>
-                <option value="ACTED_IN">Жүжигчин</option>
-                <option value="DIRECTED">Найруулагч</option>
-                <option value="WROTE">Зохиолч</option>
-                <option value="PRODUCED">Продюсер</option>
-            </select>
-        </div>
+<label>Хүн хайх:</label>
+<input type="text" id="person-search" class="form-control" placeholder="Хүний нэр бичнэ үү..." autocomplete="off">
 
-        <button type="submit" class="btn btn-primary">Нэмэх</button>
-    </form>
-</div>
+<div id="results" class="list-group mt-2"></div>
+
+<form id="add-form" method="POST" class="mt-3">
+    <input type="hidden" name="person" id="selected-person">
+    <label>Төрөл</label>
+    <select name="role" class="form-control">
+        <option value="ACTED_IN">Жүжигчин</option>
+        <option value="DIRECTED">Найруулагч</option>
+        <option value="WROTE">Зохиолч</option>
+        <option value="PRODUCED">Продюсер</option>
+    </select>
+    <button class="btn btn-primary mt-3">Нэмэх</button>
+</form>
+
+<script>
+document.getElementById("person-search").addEventListener("input", function () {
+    const q = this.value.trim();
+    const resultsDiv = document.getElementById("results");
+    if (!q) {
+        resultsDiv.innerHTML = "";
+        document.getElementById("add-form").style.display = "none";
+        return;
+    }
+
+    fetch(`/search_person?q=${encodeURIComponent(q)}`)
+        .then(r => r.json())
+        .then(data => {
+            let html = "";
+            data.results.forEach(name => {
+                html += `<button type="button" class="list-group-item list-group-item-action person-item">${name}</button>`;
+            });
+            resultsDiv.innerHTML = html;
+
+            document.querySelectorAll(".person-item").forEach(btn => {
+                btn.onclick = () => {
+                    document.getElementById("person-search").value = btn.innerText;
+                    document.getElementById("selected-person").value = btn.innerText;
+                    resultsDiv.innerHTML = "";
+                    document.getElementById("add-form").style.display = "block";
+                };
+            });
+        });
+});
+</script>
+
 </body>
 </html>
