@@ -1,3 +1,4 @@
+from shutil import move
 from flask import Flask, make_response, render_template, request, redirect, url_for, session, jsonify
 from neo4j import Driver, GraphDatabase
 
@@ -686,17 +687,21 @@ def reviewers():
 # ----------------------------
 @app.route('/admin/movie/<title>/delete', methods=['POST'])
 def delete_movie(title):
-    if session.get('role') != 'admin':
-        return "Зөвшөөрөгдсөнгүй!", 403
+    if session.get("role") != "admin":
+        return {"success": False, "message": "Access Denied"}, 403
 
-    title_safe = title.replace("'", "\\'")
-    query = f"MATCH (m:Movie {{title: '{title_safe}'}}) DETACH DELETE m"
-    conn.query(query)
-    return redirect(url_for('index'))
+    title_safe = title.replace("'", "\\'")  # энгийн escaping
+
+    try:
+        # Neo4j query ашиглаж устгах
+        conn.query(f"MATCH (m:Movie {{title:'{title_safe}'}}) DETACH DELETE m")
+        return {"success": True, "message": f"'{title}' кино устгагдлаа."}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
 
 
 
-    
+
 @app.route('/admin/movie/<title>/edit', methods=['GET', 'POST'])
 def edit_movie(title):
     if session.get("role") != "admin":
@@ -704,18 +709,15 @@ def edit_movie(title):
 
     title_safe = title.replace("'", "\\'")
 
-    # POST: form-оос ирсэн шинэ мэдээллийг хадгалах
     if request.method == "POST":
         new_title = request.form.get("title").replace("'", "\\'")
         released = request.form.get("released")
         img_file = request.files.get("image")
-        
-        # Зураг хадгалах
+
         if img_file and img_file.filename:
             img_name = img_file.filename
             img_file.save(os.path.join(app.config['MOVIE_UPLOAD'], img_name))
         else:
-            # Шинэ зураг ороогүй бол хуучин зураг хадгалах
             result = conn.query(f"MATCH (m:Movie {{title:'{title_safe}'}}) RETURN m.image AS image")
             img_name = result[0]['image'] if result else 'default.jpg'
 
@@ -726,16 +728,17 @@ def edit_movie(title):
         conn.query(query)
         return redirect(url_for('movie_detail', title=new_title))
 
-    # GET: form харуулах
+    # GET request
     result = conn.query(f"""
         MATCH (m:Movie {{title:'{title_safe}'}})
         RETURN m.title AS title, m.released AS released, m.image AS image
     """)
     if not result:
         return "Movie not found"
-    
-    movie = result[0]
+
+    movie = result[0]  # ✅ Зөв тодорхойлж байна
     return render_template("admin_edit_movie.html", movie=movie)
+
 
 
 
