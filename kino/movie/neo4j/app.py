@@ -241,10 +241,16 @@ def format_person_list(person_list, default_image="default.jpg", include_alias=F
         return formatted.append(person_dict)
     return formatted
 
-@app.route("/movie/<title>")
+@app.route("/movie/<path:title>")
 def movie_detail(title):
-    conn = Neo4jConnection(uri="neo4j://127.0.0.1:7687", user="neo4j", pwd="12345678", database="neo4j-2025-12-05t09-39-32")
+    conn = Neo4jConnection(
+        uri="neo4j://127.0.0.1:7687",
+        user="neo4j",
+        pwd="12345678",
+        database="neo4j-2025-12-05t09-39-32"
+    )
 
+    # Кино мэдээлэл ба баг
     query = """
     MATCH (m:Movie {title:$title})
     OPTIONAL MATCH (a:Person)-[r:ACTED_IN]->(m)
@@ -254,8 +260,7 @@ def movie_detail(title):
     RETURN m.title AS title,
            m.released AS year,
            m.image AS image,
-           m.avg_rating AS avg_rating,
-           collect(DISTINCT {name:a.name, image:a.image, alias:CASE WHEN r.alias IS NULL THEN [] ELSE [r.alias] END}) AS actors,
+           collect(DISTINCT {name:a.name, image:a.image, alias:r.alias}) AS actors,
            collect(DISTINCT {name:d.name, image:d.image}) AS directors,
            collect(DISTINCT {name:w.name, image:w.image}) AS writers,
            collect(DISTINCT {name:p.name, image:p.image}) AS producers
@@ -264,34 +269,33 @@ def movie_detail(title):
     if not records:
         return "Кино олдсонгүй", 404
 
-    record = records[0]
+    r = records[0]
     movie = {
-        "title": record.get("title") or "Мэдээлэлгүй",
-        "released": record.get("year") or "Мэдээлэлгүй",
-        "image": record.get("image") or "default.jpg",
-        "avg_rating": record.get("avg_rating") or 0,
-        "actors": record.get("actors") or [],  # None бол [] болгоно
-        "directors": record.get("directors") or [],
-        "writers": record.get("writers") or [],
-        "producers": record.get("producers") or []
+        "title": r.get("title"),
+        "released": r.get("year"),
+        "image": r.get("image") or "default.jpg",
+        "actors": r.get("actors") or [],
+        "directors": r.get("directors") or [],
+        "writers": r.get("writers") or [],
+        "producers": r.get("producers") or []
     }
 
+    # Reviews-г авч дундаж үнэлгээ тооцох
+    reviews = conn.query("""
+        MATCH (u:User)-[r:REVIEWED]->(m:Movie {title:$title})
+        RETURN u.username AS username, r.rating AS rating, r.summary AS summary
+    """, {"title": title})
 
-    reviews_query = """
-    MATCH (u:User)-[r:REVIEWED]->(m:Movie {title:$title})
-    RETURN u.username AS username, r.rating AS rating, r.summary AS summary
-    """
-    reviews = conn.query(reviews_query, {"title": title})
-    movie["reviews"] = [dict(r) for r in reviews] if reviews else []
+    review_list = [dict(x) for x in reviews] if reviews else []
+    movie["reviews"] = review_list
 
-    return render_template(
-        "movie_detail.html",
-        movie=movie,
-        actors=movie["actors"],
-        directors=movie["directors"],
-        writers=movie["writers"],
-        producers=movie["producers"]
-    )
+    # Дундаж үнэлгээ
+    if review_list:
+        movie["avg_rating"] = round(sum(r["rating"] for r in review_list) / len(review_list), 1)
+    else:
+        movie["avg_rating"] = 0
+
+    return render_template("movie_detail.html", movie=movie)
 
 
 

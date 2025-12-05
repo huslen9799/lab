@@ -34,10 +34,11 @@ a:hover { color:#b04aeb; }
 {% if movie %}
     <h2>{{ movie.title }} ({{ movie.released }})</h2>
     <img src="{{ url_for('static', filename='movies/' + (movie.image or 'default.jpg')) }}" class="img-fluid mb-3">
+    
+{% if movie.avg_rating is not none %}
+    <p class="lead"><strong>Дундаж үнэлгээ:</strong> {{ movie.avg_rating|round(1) }}/10</p>
+{% endif %}
 
-    {% if movie.avg_rating %}
-        <p class="lead"><strong>Дундаж үнэлгээ:</strong> {{ movie.avg_rating }}/10</p>
-    {% endif %}
 
     <h3>Кино баг</h3>
 
@@ -51,9 +52,10 @@ a:hover { color:#b04aeb; }
                 <img src="{{ url_for('static', filename='people/' + (person.image or 'default.jpg')) }}" class="img-fluid rounded" style="height:150px; object-fit:cover;">
                 <p class="mt-2">
                     <a href="{{ url_for('person_detail', name=person.name) }}">{{ person.name }}</a>
-                 {% if label == "Жүжигчид" and person.alias %}
-                ({{ '(' + (person.alias | join(", ")) + ')' }})
-            {% endif %}
+           {% if label == "Жүжигчид" and person.alias %}
+    ({{ person.alias[0] }})
+{% endif %}
+
 
 
                 </p>
@@ -87,7 +89,7 @@ a:hover { color:#b04aeb; }
     {% if session.get('role') == 'admin' %}
         <hr>
         <h4>Кино баг нэмэх (Админ)</h4>
-        <input type="text" id="person-search" class="form-control mb-2" placeholder="Жүжигчний нэр...">
+        <input type="text" id="person-search" class="form-control mb-2" placeholder="Нэрээр хайх...">
         <div id="results" class="list-group mb-3"></div>
         <input type="hidden" id="movie-title" value="{{ movie.title }}">
         <form id="add-form" style="display:none;">
@@ -109,7 +111,7 @@ a:hover { color:#b04aeb; }
         <hr>
         <h4>Кино мэдээлэл засах / устгах</h4>
         <a href="{{ url_for('edit_movie', title=movie.title) }}" class="btn btn-warning mb-3">Кино засах</a>
-        <button id="delete-movie-btn" class="btn btn-danger mt-2">Кино устгах</button>
+        <button id="delete-movie-btn" class="btn btn-danger mt-2" style="margin-top: 100px;">Кино устгах</button>
     {% endif %}
 
     {% if session.get('username') and session.get('role')!="guest" %}
