@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <title>Ажилтан ба Салбар</title>
+    <style>
+        table { border-collapse: collapse; width: 50%; margin-bottom: 20px; }
+        th, td { border: 1px solid black; padding: 5px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        a { margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Салбарууд</h1>
+    <a href="{{ url_for('branch_add') }}">Шинэ салбар нэмэх</a>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Салбарын нэр</th>
+            <th>Үйлдэл</th>
+        </tr>
+        {% for branch in branches %}
+        <tr>
+            <td>{{ branch.id }}</td>
+            <td>{{ branch.bname }}</td>
+            <td>
+                <a href="{{ url_for('branch_edit', id=branch.id) }}">Засах</a>
+              <!-- Branch Delete -->
+<a href="{{ url_for('branch_delete', id=branch.id) }}"
+   onclick="return confirm('Та энэ салбарыг устгах гэж байна. Үнэхээр устгах уу?');">
+   Устгах
+</a>
+
+
+
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Ажилтнууд</h1>
+    <a href="{{ url_for('worker_add') }}">Шинэ ажилтан нэмэх</a>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Ажилтаны нэр</th>
+            <th>Салбар</th>
+            <th>Үйлдэл</th>
+        </tr>
+        {% for worker in workers %}
+        <tr>
+            <td>{{ worker.id }}</td>
+            <td>{{ worker.wname }}</td>
+            <td>{{ worker.bname }}</td>
+            <td>
+                <a href="{{ url_for('worker_edit', id=worker.id) }}">Засах</a>
+                <a href="{{ url_for('worker_delete', id=worker.id) }}"
+   onclick="return confirm('Та энэ ажилтныг устгах гэж байна. Үнэхээр устгах уу?');">
+   Устгах
+</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

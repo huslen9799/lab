@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <title>Салбар засах</title>
+</head>
+<body>
+    <h1>Салбар засах</h1>
+    <form method="POST">
+        <label>Салбарын нэр: </label>
+        <input type="text" name="bname" value="{{ branch.bname }}" required><br><br>
+        <button type="submit">Хадгалах</button>
+    </form>
+    <a href="{{ url_for('index') }}">Буцах</a>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <title>Ажилтан засах</title>
+</head>
+<body>
+    <h1>Ажилтан засах</h1>
+    <form method="POST">
+        <label>Ажилтаны нэр: </label>
+        <input type="text" name="wname" value="{{ worker.wname }}" required><br><br>
+        <label>Салбар: </label>
+        <select name="bid">
+            {% for branch in branches %}
+            <option value="{{ branch.id }}" {% if branch.id == worker.bid %}selected{% endif %}>
+                {{ branch.bname }}
+            </option>
+            {% endfor %}
+        </select><br><br>
+        <button type="submit">Хадгалах</button>
+    </form>
+    <a href="{{ url_for('index') }}">Буцах</a>
+</body>
+</html>

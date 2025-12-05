@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Branches</title>
+</head>
+<body>
+
+<h1>Салбарууд</h1>
+<a href="{{ url_for('branch_add') }}">Шинэ салбар нэмэх</a>
+<ul>
+{% for branch in branches %}
+    <li>{{ branch.bname }} - <a href="{{ url_for('branch_edit', id=branch.id) }}">Засах</a></li>
+{% endfor %}
+</ul>
+<a href="{{ url_for('index') }}">Нүүр</a>
+
+
+</body>
+</html>

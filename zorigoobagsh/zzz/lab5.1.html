@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        //тоо таах тоглоом
+        let too = Math.floor(Math.random() * 100) + 1;
+        while (true) {
+            let utga = prompt("Та таах тоогоо оруулна уу...");
+            if(utga==too){
+                alert("зөв таалаа баяр хүргэе та хожлоо ");
+                break;
+            }
+       if (too>utga) {
+        alert("Та арай бага тоо оруулж байна");
+       } 
+       if (utga>100) {
+        alert("100аас бага тоо оруулна уу");
+       }
+       else if (too<utga){
+        alert("Та арай их тоо оруулж байна");
+       } else {
+        alert("та тоо оруулна уу");
+       }
+        }
+
+    </script>
+</body>
+</html>
