@@ -95,9 +95,7 @@ def index():
 # ----------------------------
 # Login / Logout / Register
 # Admin хэрэглэгчийн мэдээлэл
-USERS = {
-    "admin": "admin_password:admin123 "  # өөрийн хүссэн нууц үг
-}
+
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     error = None
@@ -231,55 +229,58 @@ def reset_password_direct(username):
 # ----------------------------
 @app.route("/movie/<title>")
 def movie_detail(title):
+    # Neo4j connection
     conn = Neo4jConnection(uri="neo4j://127.0.0.1:7687", user="neo4j", pwd="12345678")
 
-    # Жүжигчид
-    actors = [dict(r) for r in conn.query("""
-        MATCH (p:Person)-[r:ACTED_IN]->(m:Movie {title:$title})
-        RETURN p.name AS name, p.image AS image, r.alias AS alias
-    """, {"title": title})]
+    # Кино мэдээлэл + actors (alias-г list хэлбэрээр)
+    query = """
+    MATCH (m:Movie {title:$title})
+    OPTIONAL MATCH (a:Person)-[r:ACTED_IN]->(m)
+    OPTIONAL MATCH (d:Person)-[:DIRECTED]->(m)
+    OPTIONAL MATCH (w:Person)-[:WROTE]->(m)
+    OPTIONAL MATCH (p:Person)-[:PRODUCED]->(m)
+    RETURN m.title AS title,
+           m.released AS year,
+           m.image AS image,
+           m.avg_rating AS avg_rating,
+           collect(DISTINCT {name:a.name, image:a.image, alias:CASE WHEN r.alias IS NULL THEN [] ELSE [r.alias] END}) AS actors,
+           collect(DISTINCT {name:d.name, image:d.image}) AS directors,
+           collect(DISTINCT {name:w.name, image:w.image}) AS writers,
+           collect(DISTINCT {name:p.name, image:p.image}) AS producers
+    """
+    records = conn.query(query, {"title": title})
 
-    # Directors, Writers, Producers
-    directors = [dict(r) for r in conn.query("""
-        MATCH (p:Person)-[:DIRECTED]->(m:Movie {title:$title})
-        RETURN p.name AS name, p.image AS image
-    """, {"title": title})]
+    if not records:
+        return "Кино олдсонгүй", 404
 
-    writers = [dict(r) for r in conn.query("""
-        MATCH (p:Person)-[:WROTE]->(m:Movie {title:$title})
-        RETURN p.name AS name, p.image AS image
-    """, {"title": title})]
+    record = records[0]
+    movie = {
+        "title": record["title"],
+        "released": record.get("year") or "Мэдээлэлгүй",
+        "image": record.get("image") or "default.jpg",
+        "avg_rating": record.get("avg_rating") or 0,
+        "actors": record["actors"],  # alias list
+        "directors": record["directors"],
+        "writers": record["writers"],
+        "producers": record["producers"]
+    }
 
-    producers = [dict(r) for r in conn.query("""
-        MATCH (p:Person)-[:PRODUCED]->(m:Movie {title:$title})
-        RETURN p.name AS name, p.image AS image
-    """, {"title": title})]
-
-    # Кино мэдээлэл
-    movie_record = conn.query("""
-        MATCH (m:Movie {title:$title})
-        RETURN m.title AS title, m.year AS year, m.image AS image, m.avg_rating AS avg_rating
-    """, {"title": title}, single=True)
-
-    movie = dict(movie_record) if movie_record else {"title": title, "year": None, "image": None, "avg_rating": None}
-
-    # Сэтгэгдэл
-    reviews_records = conn.query("""
-        MATCH (u:User)-[r:REVIEWED]->(m:Movie {title:$title})
-        RETURN u.username AS username, r.rating AS rating, r.summary AS summary
-    """, {"title": title})
-
-    movie['reviews'] = [dict(r) for r in reviews_records] if reviews_records else []
+    # Сэтгэгдлүүд
+    reviews_query = """
+    MATCH (u:User)-[r:REVIEWED]->(m:Movie {title:$title})
+    RETURN u.username AS username, r.rating AS rating, r.summary AS summary
+    """
+    reviews = conn.query(reviews_query, {"title": title})
+    movie["reviews"] = [dict(r) for r in reviews] if reviews else []
 
     return render_template(
         "movie_detail.html",
         movie=movie,
-        actors=actors,
-        directors=directors,
-        writers=writers,
-        producers=producers
+        actors=movie["actors"],
+        directors=movie["directors"],
+        writers=movie["writers"],
+        producers=movie["producers"]
     )
-
 
 
 
@@ -356,47 +357,64 @@ def search_person():
     return jsonify({"results": results})
 @app.route("/add_member_quick", methods=["POST"])
 def add_member_quick():
-    person_name = request.form["person"]
-    role = request.form["role"]
-    movie_title = request.form["movie_title"]
-    alias = request.form.get("alias")
+    person_name = request.form.get("person", "").strip()
+    role = request.form.get("role", "").strip()
+    movie_title = request.form.get("movie_title", "").strip()
+    alias_input = request.form.get("alias", "").strip()
 
-    # Neo4j-д нэмэх
+    if not person_name or not role or not movie_title:
+        return jsonify({"success": False, "message": "Бүх талбарыг бөглөх шаардлагатай."})
+
+    # Alias-г list болгох
+    alias_list = []
+    if role == "ACTED_IN":
+        if alias_input:
+            alias_list = [a.strip() for a in alias_input.split(",") if a.strip()]
+        if not alias_list:
+            alias_list = [person_name]
+
+    try:
+        add_person_to_movie(
+            movie_title=movie_title,
+            person_name=person_name,
+            role=role,
+            alias_list=alias_list
+        )
+        return jsonify({"success": True, "message": f"{person_name} кино багт амжилттай нэмэгдлээ."})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Алдаа гарлаа: {str(e)}"})
+
+def add_person_to_movie(movie_title, person_name, role, alias_list=None):
+    alias_list = alias_list or []
     query = f"""
-    MATCH (p:Person {{name:$person_name}}), (m:Movie {{title:$movie_title}})
+    MERGE (p:Person {{name: $person_name}})
+    MERGE (m:Movie {{title: $movie_title}})
     MERGE (p)-[r:{role}]->(m)
+    SET r.alias = $alias_list
     """
-    if alias and role == "ACTED_IN":
-        query += " SET r.alias = $alias"
-
-    conn.query(query, {"person_name": person_name, "movie_title": movie_title, "alias": alias})
-
-    # Alias-г response-д буцаах
-    return jsonify({
-        "success": True,
-        "message": f"{person_name} нэмэгдлээ!",
-        "alias": alias  # ✅ Шууд frontend-д ашиглана
-    })
-
-
+    conn.query(query, {"person_name": person_name, "movie_title": movie_title, "alias_list": alias_list})
 
 @app.route('/update_alias', methods=['POST'])
 def update_alias():
     person = request.form.get('person')
     movie_title = request.form.get('movie_title')
-    alias = request.form.get('alias')
+    alias = request.form.get('alias')  # Жишээ: "ssas,as"
 
     try:
-        query = """
-        MATCH (p:Person {name:$person})-[r:ACTED_IN]->(m:Movie {title:$movie})
-        SET r.alias = $alias
-        """
-        conn.query(query, person=person, movie=movie_title, alias=alias)
+        # 🟢 Alias-г таслалаар салгаж жагсаалт болгох
+        aliases = [a.strip() for a in alias.split(",") if a.strip()]
+
+        # Хэрвээ alias хоосон байвал None утгаар нэг MERGE
+        for single_alias in aliases or [None]:
+            query = """
+            MATCH (p:Person {name:$person})-[r:ACTED_IN]->(m:Movie {title:$movie})
+            SET r.alias = $alias
+            """
+            conn.query(query, {"person": person, "movie": movie_title, "alias": single_alias})
+
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
-
-
 
 
 # ----------------------------

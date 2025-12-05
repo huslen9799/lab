@@ -40,31 +40,36 @@ a:hover { color:#b04aeb; }
     {% endif %}
 
     <h3>Кино баг</h3>
-    {% macro team_block(label, people) %}
-        <h5 class="mt-3">{{ label }}</h5>
-        {% if people|length > 0 %}
-            <div class="row" id="{{ label|lower }}-container">
-            {% for person in people %}
-                <div class="col-md-4 col-sm-6 text-center mb-3">
-                    <img src="{{ url_for('static', filename='people/' + (person.image or 'default.jpg')) }}" class="img-fluid rounded" style="height:150px; object-fit:cover;">
-                    <p class="mt-2">
-                        <a href="{{ url_for('person_detail', name=person.name) }}">{{ person.name }}</a>
-                        {% if label == "Жүжигчид" and person.alias and person.alias != person.name %}
-                            ({{ person.alias }})
-                        {% endif %}
-                    </p>
-                </div>
-            {% endfor %}
-            </div>
-        {% else %}
-            <p class="text-muted">Мэдээлэл байхгүй.</p>
-        {% endif %}
-    {% endmacro %}
 
-    {{ team_block("Жүжигчид", actors) }}
-    {{ team_block("Найруулагч", directors) }}
-    {{ team_block("Зохиолч", writers) }}
-    {{ team_block("Продюсер", producers) }}
+{% macro team_block(label, people, container_id) %}
+    <h5 class="mt-3">{{ label }}</h5>
+    {% if people|length > 0 %}
+        <div class="row" id="{{ container_id }}">
+        {% for person in people %}
+            {% if person.name %}
+            <div class="col-md-4 col-sm-6 text-center mb-3">
+                <img src="{{ url_for('static', filename='people/' + (person.image or 'default.jpg')) }}" class="img-fluid rounded" style="height:150px; object-fit:cover;">
+                <p class="mt-2">
+                    <a href="{{ url_for('person_detail', name=person.name) }}">{{ person.name }}</a>
+                    {% if label == "Жүжигчид" and person.alias %}
+                        ({{ person.alias | join(", ") }})
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+        {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">Мэдээлэл байхгүй.</p>
+    {% endif %}
+{% endmacro %}
+
+
+
+{{ team_block("Жүжигчид", movie.actors, "actors-container") }}
+{{ team_block("Найруулагч", movie.directors, "directors-container") }}
+{{ team_block("Зохиолч", movie.writers, "writers-container") }}
+{{ team_block("Продюсер", movie.producers, "producers-container") }}
 
     <h4 class="mt-5">Сэтгэгдэл</h4>
     {% if movie.reviews %}
@@ -94,17 +99,14 @@ a:hover { color:#b04aeb; }
             </select>
             <div id="alias-container" style="display:none;">
                 <label>Дурийн нэр:</label>
-                <input type="text" id="alias-input" class="form-control" placeholder="Жишээ: Jack">
+                <input type="text" id="alias-input" class="form-control" placeholder="Жишээ: Jack, Джек">
             </div>
             <button type="submit" class="btn btn-primary mt-2">Нэмэх</button>
         </form>
 
         <hr>
         <h4>Кино мэдээлэл засах / устгах</h4>
-        <form id="edit-movie-form">
-           
-            <a href="{{ url_for('edit_movie', title=movie.title) }}" class="btn btn-warning mb-3">Кино засах</a>
-        </form>
+        <a href="{{ url_for('edit_movie', title=movie.title) }}" class="btn btn-warning mb-3">Кино засах</a>
         <button id="delete-movie-btn" class="btn btn-danger mt-2">Кино устгах</button>
     {% endif %}
 
@@ -223,50 +225,28 @@ if(addForm){
     });
 }
 
-// --- Кино мэдээлэл засах ---
-const editForm = document.getElementById("edit-movie-form");
-if(editForm){
-    editForm.addEventListener("submit", e => {
-        e.preventDefault();
-        const title = document.getElementById("movie-title-input").value;
-        const released = document.getElementById("movie-year-input").value;
+// Кино устгах
+const deleteBtn = document.getElementById("delete-movie-btn");
+if(deleteBtn){
+    deleteBtn.addEventListener("click", () => {
+        if(confirm("Энэ киног устгах уу?")){
+            const titleEncoded = encodeURIComponent(movieTitle);
 
-        fetch(`/movie_edit/${encodeURIComponent(movieTitle)}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title, released })
-        })
-        .then(r => r.json())
-        .then(data => alert(data.message))
-        .catch(err => alert("Алдаа гарлаа: " + err));
+            fetch(`/admin/movie/${titleEncoded}/delete`, { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success){
+                    alert(data.message);
+                    window.location.href = "/";
+                } else {
+                    alert("Алдаа гарлаа: " + data.message);
+                }
+            })
+            .catch(err => alert("Сервертэй холбогдох үед алдаа гарлаа: " + err));
+        }
     });
 }
-
-// --- Кино устгах ---
-
-const deleteBtn = document.getElementById("delete-movie-btn");
-deleteBtn.addEventListener("click", () => {
-    if(confirm("Энэ киног устгах уу?")){
-        const titleEncoded = encodeURIComponent(movieTitle);
-
-        fetch(`/admin/movie/${titleEncoded}/delete`, {      
-            method: "POST"
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success){
-                alert(data.message);
-                window.location.href = "/";
-            } else {
-                alert("Алдаа гарлаа: " + data.message);
-            }
-        })
-        .catch(err => alert("Сервертэй холбогдох үед алдаа гарлаа: " + err));
-    }
-});
-
 </script>
-
 
 </body>
 </html>
