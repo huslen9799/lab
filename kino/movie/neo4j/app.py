@@ -31,12 +31,13 @@ app.config['PERSON_UPLOAD'] = PERSON_IMG
 
 
 class Neo4jConnection:
-    def __init__(self, uri, user, pwd):
+    def __init__(self, uri, user, pwd, database):
         self._driver = GraphDatabase.driver(uri, auth=(user, pwd))
+        self.database = database  # ✅ Энэ нь таны database нэр
 
     def query(self, query, parameters=None, single=False):
         try:
-            with self._driver.session() as session:
+            with self._driver.session(database=self.database) as session:
                 result = session.run(query, parameters)
                 return result.single() if single else list(result)
         except Exception as e:
@@ -47,7 +48,8 @@ class Neo4jConnection:
 conn = Neo4jConnection(
     uri="neo4j://127.0.0.1:7687",
     user="neo4j",
-    pwd="12345678"
+    pwd="12345678",
+    database="neo4j-2025-12-05t09-39-32"  # ✅ таны DB нэр
 )
 # ----------------------------
 # Users
@@ -227,12 +229,22 @@ def reset_password_direct(username):
 # ----------------------------
 # Movie detail + Reviews
 # ----------------------------
+def format_person_list(person_list, default_image="default.jpg", include_alias=False):
+    formatted = []
+    for p in person_list:
+        person_dict = {
+            "name": p.get("name") or "Мэдээлэлгүй",
+            "image": p.get("image") or default_image
+        }
+        if include_alias:
+            person_dict["alias"] = p.get("alias") or []
+        return formatted.append(person_dict)
+    return formatted
+
 @app.route("/movie/<title>")
 def movie_detail(title):
-    # Neo4j connection
-    conn = Neo4jConnection(uri="neo4j://127.0.0.1:7687", user="neo4j", pwd="12345678")
+    conn = Neo4jConnection(uri="neo4j://127.0.0.1:7687", user="neo4j", pwd="12345678", database="neo4j-2025-12-05t09-39-32")
 
-    # Кино мэдээлэл + actors (alias-г list хэлбэрээр)
     query = """
     MATCH (m:Movie {title:$title})
     OPTIONAL MATCH (a:Person)-[r:ACTED_IN]->(m)
@@ -249,23 +261,22 @@ def movie_detail(title):
            collect(DISTINCT {name:p.name, image:p.image}) AS producers
     """
     records = conn.query(query, {"title": title})
-
     if not records:
         return "Кино олдсонгүй", 404
 
     record = records[0]
     movie = {
-        "title": record["title"],
+        "title": record.get("title") or "Мэдээлэлгүй",
         "released": record.get("year") or "Мэдээлэлгүй",
         "image": record.get("image") or "default.jpg",
         "avg_rating": record.get("avg_rating") or 0,
-        "actors": record["actors"],  # alias list
-        "directors": record["directors"],
-        "writers": record["writers"],
-        "producers": record["producers"]
+        "actors": record.get("actors") or [],  # None бол [] болгоно
+        "directors": record.get("directors") or [],
+        "writers": record.get("writers") or [],
+        "producers": record.get("producers") or []
     }
 
-    # Сэтгэгдлүүд
+
     reviews_query = """
     MATCH (u:User)-[r:REVIEWED]->(m:Movie {title:$title})
     RETURN u.username AS username, r.rating AS rating, r.summary AS summary
@@ -281,6 +292,7 @@ def movie_detail(title):
         writers=movie["writers"],
         producers=movie["producers"]
     )
+
 
 
 
@@ -374,13 +386,15 @@ def add_member_quick():
             alias_list = [person_name]
 
     try:
-        add_person_to_movie(
-            movie_title=movie_title,
-            person_name=person_name,
-            role=role,
-            alias_list=alias_list
-        )
-        return jsonify({"success": True, "message": f"{person_name} кино багт амжилттай нэмэгдлээ."})
+        query = f"""
+        MERGE (p:Person {{name:$person_name}})
+        MERGE (m:Movie {{title:$movie_title}})
+        MERGE (p)-[r:{role}]->(m)
+        SET r.alias = $alias_list
+        """
+        conn.query(query, {"person_name": person_name, "movie_title": movie_title, "alias_list": alias_list})
+
+        return jsonify({"success": True, "message": f"{person_name} кино багт амжилттай нэмэгдлээ.", "alias": alias_list})
     except Exception as e:
         return jsonify({"success": False, "message": f"Алдаа гарлаа: {str(e)}"})
 
@@ -487,19 +501,28 @@ def add_member_full(title):
 
 
  
-
-@app.route("/admin/person/add", methods=["GET", "POST"])
+@app.route("/admin/person/add", methods=['GET', 'POST'])
 def add_person():
-    if request.method == "POST":
-        # POST data-ийг боловсруулна
-        name = request.form.get("name")
-        role = request.form.get("role")
-        # Neo4j-д нэмэх код
-        ...
-        return redirect(url_for("index"))
-    return render_template("add_person.html")
+    if session.get('role') != 'admin':
+        return "Зөвшөөрөгдсөнгүй!"
+    
+    if request.method == 'POST':
+        name = request.form.get('name', '').replace("'", "\\'")
+        image_file = request.files.get('image')
+        image_name = image_file.filename if image_file else 'default.jpg'
+        if image_file:
+            image_file.save(os.path.join(app.config['PERSON_UPLOAD'], image_name))
+        
+        # MERGE ашиглаж ижил нэртэй хүн давхар үүсгэхээс сэргийлнэ
+        query = f"""
+        MERGE (p:Person {{name: '{name}'}})
+        SET p.image = '{image_name}'
+        """
+        conn.query(query)
+        return redirect(url_for('index'))
+    
+    return render_template("admin_add_person.html")
 
-# ----------------------------
 # Person detail
 # ----------------------------
 @app.route("/person/<name>")

@@ -51,9 +51,11 @@ a:hover { color:#b04aeb; }
                 <img src="{{ url_for('static', filename='people/' + (person.image or 'default.jpg')) }}" class="img-fluid rounded" style="height:150px; object-fit:cover;">
                 <p class="mt-2">
                     <a href="{{ url_for('person_detail', name=person.name) }}">{{ person.name }}</a>
-                    {% if label == "Жүжигчид" and person.alias %}
-                        ({{ person.alias | join(", ") }})
-                    {% endif %}
+                 {% if label == "Жүжигчид" and person.alias %}
+                ({{ '(' + (person.alias | join(", ")) + ')' }})
+            {% endif %}
+
+
                 </p>
             </div>
             {% endif %}
