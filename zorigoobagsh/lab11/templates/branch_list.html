@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Branches</title>
+</head>
+<body>
+
+<h2>Салбарууд</h2>
+
+<a href="/branch/add">+ Салбар нэмэх</a> |
+<a href="/">Ажилчид</a>
+
+<br><br>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>ID</th>
+        <th>Салбар нэр</th>
+        <th>Үйлдэл</th>
+    </tr>
+
+    {% for b in branches %}
+    <tr>
+        <td>{{ b.id }}</td>
+        <td>{{ b.bname }}</td>
+        <td>
+            <a href="/branch/edit/{{ b.id }}">Засах</a> |
+            <a href="/branch/delete/{{ b.id }}" onclick="return confirm('Устгах уу?')">Устгах</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>

@@ -1,30 +1,43 @@
 import sqlite3
 import os
 
-db_path = "Employee.db"
+DB_FILE = "database.db"
 
-conn = sqlite3.connect(db_path)
-cur = conn.cursor()
+# Хуучин database-г устгах
+if os.path.exists(DB_FILE):
+    os.remove(DB_FILE)
 
-# Branch table
-cur.execute("""
-CREATE TABLE IF NOT EXISTS Branch(
+# Шинэ database үүсгэх
+conn = sqlite3.connect(DB_FILE)
+cursor = conn.cursor()
+
+# Branch хүснэгт
+cursor.execute("""
+CREATE TABLE Branch(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bname TEXT
+    bname TEXT NOT NULL
 )
 """)
 
-# Worker table
-cur.execute("""
-CREATE TABLE IF NOT EXISTS Worker(
-    wid INTEGER PRIMARY KEY AUTOINCREMENT,
-    wname TEXT,
+# Worker хүснэгт
+cursor.execute("""
+CREATE TABLE Worker(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    wname TEXT NOT NULL,
     bid INTEGER,
     FOREIGN KEY(bid) REFERENCES Branch(id)
 )
 """)
 
+# Жишээ өгөгдөл оруулах
+cursor.execute("INSERT INTO Branch(bname) VALUES (?)", ("IT",))
+cursor.execute("INSERT INTO Branch(bname) VALUES (?)", ("HR",))
+cursor.execute("INSERT INTO Branch(bname) VALUES (?)", ("Finance",))
+
+cursor.execute("INSERT INTO Worker(wname, bid) VALUES (?, ?)", ("Bat", 1))
+cursor.execute("INSERT INTO Worker(wname, bid) VALUES (?, ?)", ("Bold", 2))
+
 conn.commit()
 conn.close()
 
-print("Database created successfully!")
+print("✅ database.db амжилттай үүслээ, хүснэгтүүд болон жишээ өгөгдөл орлоо.")

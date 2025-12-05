@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ажилтан нэмэх</title>
+</head>
+<body>
+
+<h2>Ажилтан нэмэх</h2>
+
+<form method="POST">
+
+    Нэр:
+    <input type="text" name="wname" required><br><br>
+
+    Салбар:
+    <select name="bid" required>
+        {% for b in branches %}
+            <option value="{{ b.id }}">{{ b.bname }}</option>
+        {% endfor %}
+    </select>
+
+    <br><br>
+
+    <button type="submit">Нэмэх</button>
+</form>
+
+<br>
+<a href="/">Буцах</a>
+
+</body>
+</html>
+    
