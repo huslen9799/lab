@@ -28,23 +28,27 @@ app.config['PERSON_UPLOAD'] = PERSON_IMG
 # ----------------------------
 # Neo4j connection
 # ----------------------------
-conn = Neo4jConnection(uri="neo4j://127.0.0.1:7687", user="neo4j", pwd="12345678")
+
 
 class Neo4jConnection:
     def __init__(self, uri, user, pwd):
         self._driver = GraphDatabase.driver(uri, auth=(user, pwd))
 
     def query(self, query, parameters=None, single=False):
-        with self._driver.session() as session:
-            result = session.run(query, parameters)
-            if single:
-                record = result.single()
-                return record if record else None
-            else:
-                return list(result)
+        try:
+            with self._driver.session() as session:
+                result = session.run(query, parameters)
+                return result.single() if single else list(result)
+        except Exception as e:
+            print("❌ Neo4j ERROR:", e)
+            return []
 
-
-
+# Neo4j-тай холбогдох
+conn = Neo4jConnection(
+    uri="neo4j://127.0.0.1:7687",
+    user="neo4j",
+    pwd="12345678"
+)
 # ----------------------------
 # Users
 # ----------------------------

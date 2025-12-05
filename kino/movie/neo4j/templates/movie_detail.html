@@ -249,7 +249,7 @@ deleteBtn.addEventListener("click", () => {
     if(confirm("Энэ киног устгах уу?")){
         const titleEncoded = encodeURIComponent(movieTitle);
 
-        fetch(`/admin/movie/${titleEncoded}/delete`, {  
+        fetch(`/admin/movie/${titleEncoded}/delete`, {      
             method: "POST"
         })
         .then(res => res.json())
