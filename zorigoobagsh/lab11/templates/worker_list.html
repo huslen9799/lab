@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Ажилтнууд</h1>
+<a href="{{ url_for('worker_add') }}">Шинэ ажилтан нэмэх</a>
+<ul>
+{% for w in workers %}
+    <li>{{ w.wname }} ({{ w.bname or 'Салбаргүй' }}) - 
+        <a href="{{ url_for('worker_edit', id=w.id) }}">Засах</a>
+        <form method="POST" action="{{ url_for('worker_delete', id=w.id) }}" style="display:inline;">
+            <button type="submit">Устгах</button>
+        </form>
+    </li>
+{% endfor %}
+</ul>
+<a href="{{ url_for('index') }}">Нүүр</a>
+
+</body>
+</html>

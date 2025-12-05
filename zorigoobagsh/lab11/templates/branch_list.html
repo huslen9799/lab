@@ -6,31 +6,15 @@
 </head>
 <body>
 
-<h2>Салбарууд</h2>
+<h1>Салбарууд</h1>
+<a href="{{ url_for('branch_add') }}">Шинэ салбар нэмэх</a>
+<ul>
+{% for branch in branches %}
+    <li>{{ branch.bname }} - <a href="{{ url_for('branch_edit', id=branch.id) }}">Засах</a></li>
+{% endfor %}
+</ul>
+<a href="{{ url_for('index') }}">Нүүр</a>
 
-<a href="/branch/add">+ Салбар нэмэх</a> |
-<a href="/">Ажилчид</a>
-
-<br><br>
-
-<table border="1" cellpadding="8">
-    <tr>
-        <th>ID</th>
-        <th>Салбар нэр</th>
-        <th>Үйлдэл</th>
-    </tr>
-
-    {% for b in branches %}
-    <tr>
-        <td>{{ b.id }}</td>
-        <td>{{ b.bname }}</td>
-        <td>
-            <a href="/branch/edit/{{ b.id }}">Засах</a> |
-            <a href="/branch/delete/{{ b.id }}" onclick="return confirm('Устгах уу?')">Устгах</a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
 
 </body>
 </html>

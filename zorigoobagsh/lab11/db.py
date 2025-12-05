@@ -1,27 +1,21 @@
 import sqlite3
-import os
 
-DB_FILE = "database.db"
+DB_FILE = "database2.db"
 
-# Хуучин database-г устгах
-if os.path.exists(DB_FILE):
-    os.remove(DB_FILE)
-
-# Шинэ database үүсгэх
 conn = sqlite3.connect(DB_FILE)
-cursor = conn.cursor()
+c = conn.cursor()
 
 # Branch хүснэгт
-cursor.execute("""
-CREATE TABLE Branch(
+c.execute("""
+CREATE TABLE IF NOT EXISTS Branch (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     bname TEXT NOT NULL
 )
 """)
 
 # Worker хүснэгт
-cursor.execute("""
-CREATE TABLE Worker(
+c.execute("""
+CREATE TABLE IF NOT EXISTS Worker (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     wname TEXT NOT NULL,
     bid INTEGER,
@@ -29,15 +23,15 @@ CREATE TABLE Worker(
 )
 """)
 
-# Жишээ өгөгдөл оруулах
-cursor.execute("INSERT INTO Branch(bname) VALUES (?)", ("IT",))
-cursor.execute("INSERT INTO Branch(bname) VALUES (?)", ("HR",))
-cursor.execute("INSERT INTO Branch(bname) VALUES (?)", ("Finance",))
+# Жишээ өгөгдөл
+branches = [('Дархан',), ('Салбар',), ('Баян-Өлгий',)]
+workers = [('Бат', 1), ('Сүхээ', 2), ('Дулмаа', 3)]
 
-cursor.execute("INSERT INTO Worker(wname, bid) VALUES (?, ?)", ("Bat", 1))
-cursor.execute("INSERT INTO Worker(wname, bid) VALUES (?, ?)", ("Bold", 2))
+# Өгөгдөл оруулах
+c.executemany("INSERT INTO Branch (bname) VALUES (?)", branches)
+c.executemany("INSERT INTO Worker (wname, bid) VALUES (?, ?)", workers)
 
 conn.commit()
 conn.close()
 
-print("✅ database.db амжилттай үүслээ, хүснэгтүүд болон жишээ өгөгдөл орлоо.")
+print("database2.db үүссэн, 3 салбар, 3 ажилтан өгөгдөлтэй.")
