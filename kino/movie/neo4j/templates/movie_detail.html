@@ -6,27 +6,29 @@
 <title>{{ movie.title if movie else 'Кино мэдээлэл' }} | Movie App</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
 <style>
-body { background-color: #121212; color: #f0f0f0; }
-.navbar-dark { background-color: #1b1b1b; }
-.navbar-dark .navbar-brand, .navbar-dark .navbar-nav .nav-link { color: #f0f0f0; }
-.navbar-dark .navbar-nav .nav-link:hover { color: #b04aeb; }
+/* ===================== Body & Typography ===================== */
+body { background-color: #121212; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.navbar-dark { background-color: #ff4d4d; }
+.navbar-dark .navbar-brand, .navbar-dark .navbar-nav .nav-link { color: #ffffff; }
+.navbar-dark .navbar-nav .nav-link:hover { color: #000000; }
+.navbar-dark .navbar-nav .nav-link.active { font-weight: bold; }
 .container { background-color: #1b1b1b; padding: 20px; border-radius: 8px; }
-h2,h3,h4,h5 { color:#7d3de6; }
-.img-fluid { border-radius: 8px; box-shadow: 0 4px 12px rgba(109,86,173,0.5); }
-.list-group-item { background-color:#2a2a2a; color:#f0f0f0; border:none; }
-textarea,input { background-color:#2a2a2a; color:#f0f0f0; border:1px solid #444; }
-textarea::placeholder,input::placeholder { color:#bbb; }
-a { color:#9b9b9b; }
-a:hover { color:#b04aeb; }
-.btn-primary { background-color:#7d3de6; border-color:#7d3de6; }
-.btn-primary:hover { background-color:#e03e3e; border-color:#e03e3e; }
-.btn-warning { color: #fff; }
-.btn-danger { color: #fff; }
+h2,h3,h4,h5 { color: #ff4d4d; }
+.img-fluid { border-radius: 8px; box-shadow: 0 4px 12px rgba(255,77,77,0.5); }
+.list-group-item { background-color:#2a2a2a; color:#ffffff; border:none; }
+textarea,input { background-color:#2a2a2a; color:#ffffff; border:1px solid #ff4d4d; }
+textarea::placeholder,input::placeholder { color:#ff9999; }
+a { color:#ff9999; } a:hover { color:#ff1a1a; }
+.btn-primary { background-color:#ff4d4d; border-color:#ff1a1a; color:#fff; }
+.btn-primary:hover { background-color:#ff1a1a; border-color:#e60000; color:#fff; }
+.btn-warning, .btn-danger { color: #fff; }
 </style>
 </head>
 <body>
+
+<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark">
-<a class="navbar-brand" href="{{ url_for('index') }}">HuslenTV</a>
+    <a class="navbar-brand" href="{{ url_for('index') }}">Nomuka</a>
 </nav>
 
 <div class="container mt-4">
@@ -34,46 +36,38 @@ a:hover { color:#b04aeb; }
 {% if movie %}
     <h2>{{ movie.title }} ({{ movie.released }})</h2>
     <img src="{{ url_for('static', filename='movies/' + (movie.image or 'default.jpg')) }}" class="img-fluid mb-3">
-    
-{% if movie.avg_rating is not none %}
-    <p class="lead"><strong>Дундаж үнэлгээ:</strong> {{ movie.avg_rating|round(1) }}/10</p>
-{% endif %}
 
+    {% if movie.avg_rating is not none %}
+        <p class="lead"><strong>Дундаж үнэлгээ:</strong> {{ movie.avg_rating|round(1) }}/10</p>
+    {% endif %}
 
     <h3>Кино баг</h3>
 
-{% macro team_block(label, people, container_id) %}
-    <h5 class="mt-3">{{ label }}</h5>
-    {% if people|length > 0 %}
-        <div class="row" id="{{ container_id }}">
-        {% for person in people %}
-            {% if person.name %}
-            <div class="col-md-4 col-sm-6 text-center mb-3">
-                <img src="{{ url_for('static', filename='people/' + (person.image or 'default.jpg')) }}" class="img-fluid rounded" style="height:150px; object-fit:cover;">
-                <p class="mt-2">
-                    <a href="{{ url_for('person_detail', name=person.name) }}">{{ person.name }}</a>
-           {% if label == "Жүжигчид" and person.alias %}
-    ({{ person.alias[0] }})
-{% endif %}
-
-
-
-                </p>
+    {% macro team_block(label, people, container_id) %}
+        <h5 class="mt-3">{{ label }}</h5>
+        {% if people|length > 0 %}
+            <div class="row" id="{{ container_id }}">
+            {% for person in people %}
+                {% if person.name %}
+                <div class="col-md-4 col-sm-6 text-center mb-3">
+                    <img src="{{ url_for('static', filename='people/' + (person.image or 'default.jpg')) }}" class="img-fluid rounded" style="height:150px; object-fit:cover;">
+                    <p class="mt-2">
+                        <a href="{{ url_for('person_detail', name=person.name) }}">{{ person.name }}</a>
+                        {% if label == "Жүжигчид" and person.alias %} ({{ person.alias[0] }}) {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+            {% endfor %}
             </div>
-            {% endif %}
-        {% endfor %}
-        </div>
-    {% else %}
-        <p class="text-muted">Мэдээлэл байхгүй.</p>
-    {% endif %}
-{% endmacro %}
+        {% else %}
+            <p class="text-muted">Мэдээлэл байхгүй.</p>
+        {% endif %}
+    {% endmacro %}
 
-
-
-{{ team_block("Жүжигчид", movie.actors, "actors-container") }}
-{{ team_block("Найруулагч", movie.directors, "directors-container") }}
-{{ team_block("Зохиолч", movie.writers, "writers-container") }}
-{{ team_block("Продюсер", movie.producers, "producers-container") }}
+    {{ team_block("Жүжигчид", movie.actors, "actors-container") }}
+    {{ team_block("Найруулагч", movie.directors, "directors-container") }}
+    {{ team_block("Зохиолч", movie.writers, "writers-container") }}
+    {{ team_block("Продюсер", movie.producers, "producers-container") }}
 
     <h4 class="mt-5">Сэтгэгдэл</h4>
     {% if movie.reviews %}
@@ -101,7 +95,7 @@ a:hover { color:#b04aeb; }
                 <option value="WROTE">Зохиолч</option>
                 <option value="PRODUCED">Продюсер</option>
             </select>
-            <div id="alias-container" style="display:none;">
+            <div id="alias-container" style="display:block;">
                 <label>Дурийн нэр:</label>
                 <input type="text" id="alias-input" class="form-control" placeholder="Жишээ: Jack, Джек">
             </div>
@@ -111,20 +105,21 @@ a:hover { color:#b04aeb; }
         <hr>
         <h4>Кино мэдээлэл засах / устгах</h4>
         <a href="{{ url_for('edit_movie', title=movie.title) }}" class="btn btn-warning mb-3">Кино засах</a>
-        <button id="delete-movie-btn" class="btn btn-danger mt-2" style="margin-top: 100px;">Кино устгах</button>
+        <button id="delete-movie-btn" class="btn btn-danger mt-2">Кино устгах</button>
     {% endif %}
 
-    {% if session.get('username') and session.get('role')!="guest" %}
-        <hr>
-        <h5>Шинэ сэтгэгдэл нэмэх</h5>
-        <form method="post" action="{{ url_for('add_review', title=movie.title) }}">
-            <textarea name="summary" class="form-control mb-2" placeholder="Сэтгэгдэл..." required></textarea>
-            <input type="number" name="rating" min="1" max="10" class="form-control mb-2" placeholder="Үнэлгээ (1-10)" required>
-            <button class="btn btn-primary">Нэмэх</button>
-        </form>
-    {% else %}
-        <p class="text-muted mt-3">Сэтгэгдэл үлдээхийн тулд нэвтэрсэн байх шаардлагатай.</p>
-    {% endif %}
+  {% if session.get('username') and session.get('role') != "guest" %}
+<hr>
+<h5>Шинэ сэтгэгдэл нэмэх</h5>
+<form method="post" action="{{ url_for('add_review', title=movie.title) }}">
+    <textarea name="summary" class="form-control mb-2" placeholder="Сэтгэгдэл..." required></textarea>
+    <input type="number" name="rating" min="1" max="10" class="form-control mb-2" placeholder="Үнэлгээ (1-10)" required>
+    <button class="btn btn-primary">Нэмэх</button>
+</form>
+{% else %}
+<p class="text-muted mt-3">Сэтгэгдэл үлдээхийн тулд нэвтэрсэн байх шаардлагатай.</p>
+{% endif %}
+
 
 {% else %}
     <p>Кино олдсонгүй.</p>
@@ -134,122 +129,82 @@ a:hover { color:#b04aeb; }
 
 <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
 <script>
-// --- Person хайх & кино багт нэмэх ---
-const searchInput = document.getElementById("person-search");
-const resultsDiv = document.getElementById("results");
-const addForm = document.getElementById("add-form");
-const selectedPerson = document.getElementById("selected-person");
-const roleSelect = document.getElementById("role-select");
-const aliasContainer = document.getElementById("alias-container");
-const aliasInput = document.getElementById("alias-input");
-const movieTitle = document.getElementById("movie-title")?.value || '';
-
-// Alias харагдах тохиргоо
-if(roleSelect){
-    aliasContainer.style.display = roleSelect.value === "ACTED_IN" ? "block" : "none";
-    roleSelect.addEventListener("change", () => {
-        aliasContainer.style.display = roleSelect.value === "ACTED_IN" ? "block" : "none";
-    });
-}
-
-// Person хайх
-if(searchInput){
-    searchInput.addEventListener("input", function(){
-        const q = this.value.trim();
-        if(!q){
-            resultsDiv.innerHTML = "";
-            addForm.style.display = "none";
-            return;
-        }
-
-        fetch(`/search_person?q=${encodeURIComponent(q)}`)
-        .then(r => r.json())
-        .then(data => {
-            let html = "";
-            data.results.forEach(name => {
-                html += `<button type="button" class="list-group-item list-group-item-action person-item">${name}</button>`;
-            });
-            resultsDiv.innerHTML = html;
-
-            document.querySelectorAll(".person-item").forEach(btn => {
-                btn.onclick = () => {
-                    searchInput.value = btn.innerText;
-                    selectedPerson.value = btn.innerText;
-                    resultsDiv.innerHTML = "";
-                    addForm.style.display = "block";
-                };
-            });
+/* ================= DELETE MOVIE ================= */
+const deleteBtn = document.getElementById("delete-movie-btn");
+if (deleteBtn) {
+    deleteBtn.addEventListener("click", function () {
+        const movieTitle = "{{ movie.title }}";
+        if (!confirm("Та энэ киног бүр мөсөн устгахдаа итгэлтэй байна уу?")) return;
+        fetch(`/admin/movie/${encodeURIComponent(movieTitle)}/delete`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"}
         })
-        .catch(err => console.error("Person search алдаа:", err));
-    });
-}
-
-// Кино багт нэмэх
-if(addForm){
-    addForm.addEventListener("submit", function(e){
-        e.preventDefault();
-        const person = selectedPerson.value.trim();
-        const role = roleSelect.value;
-        const aliasValue = role === "ACTED_IN" ? (aliasInput.value.trim() || person) : null;
-
-        if(!person){
-            alert("Алдаа: Хоосон утга байна!");
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append("person", person);
-        formData.append("role", role);
-        formData.append("movie_title", movieTitle);
-        if(aliasValue) formData.append("alias", aliasValue);
-
-        fetch("/add_member_quick", { method:"POST", body: formData })
-        .then(r => r.json())
+        .then(res => res.json())
         .then(data => {
             alert(data.message);
-            if(data.success){
-                addForm.reset();
-                addForm.style.display = "none";
-
-                const containerId = role === "ACTED_IN" ? "actors-container" :
-                                    role === "DIRECTED" ? "directors-container" :
-                                    role === "WROTE" ? "writers-container" : "producers-container";
-
-                const container = document.getElementById(containerId);
-                if(container){
-                    const div = document.createElement("div");
-                    div.classList.add("col-md-4","col-sm-6","text-center","mb-3");
-                    div.innerHTML = `<img src="/static/people/default.jpg" class="img-fluid rounded" style="height:150px;object-fit:cover;">
-                                     <p class="mt-2">${person}${aliasValue ? ` (${aliasValue})` : ''}</p>`;
-                    container.appendChild(div);
-                }
-            }
+            if (data.success) window.location.href = "/";
         })
-        .catch(err => alert("Алдаа гарлаа: " + err));
+        .catch(err => alert("Сервертэй холбогдож чадсангүй."));
     });
 }
 
-// Кино устгах
-const deleteBtn = document.getElementById("delete-movie-btn");
-if(deleteBtn){
-    deleteBtn.addEventListener("click", () => {
-        if(confirm("Энэ киног устгах уу?")){
-            const titleEncoded = encodeURIComponent(movieTitle);
+/* ================= PERSON SEARCH ================= */
+const personSearchInput = document.getElementById('person-search');
+const resultsContainer = document.getElementById('results');
+const addForm = document.getElementById('add-form');
+const selectedPersonInput = document.getElementById('selected-person');
+const roleSelect = document.getElementById('role-select');
+const aliasContainer = document.getElementById('alias-container');
 
-            fetch(`/admin/movie/${titleEncoded}/delete`, { method: "POST" })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success){
-                    alert(data.message);
-                    window.location.href = "/";
-                } else {
-                    alert("Алдаа гарлаа: " + data.message);
-                }
-            })
-            .catch(err => alert("Сервертэй холбогдох үед алдаа гарлаа: " + err));
+if (personSearchInput) {
+    personSearchInput.addEventListener('input', async () => {
+        const query = personSearchInput.value.trim();
+        if (!query) {
+            resultsContainer.innerHTML = '';
+            addForm.style.display = 'none';
+            return;
         }
+        const res = await fetch(`/admin/search_person?q=${encodeURIComponent(query)}`);
+        const people = await res.json();
+        resultsContainer.innerHTML = '';
+        people.forEach(p => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'list-group-item list-group-item-action';
+            btn.textContent = p.name;
+            btn.onclick = () => {
+                selectedPersonInput.value = p.name;
+                addForm.style.display = 'block';
+                resultsContainer.innerHTML = '';
+            };
+            resultsContainer.appendChild(btn);
+        });
     });
 }
+
+/* ================= ROLE CHANGE ================= */
+roleSelect.addEventListener("change", () => {
+    if (roleSelect.value === "ACTED_IN") aliasContainer.style.display = "block";
+    else aliasContainer.style.display = "none";
+});
+
+/* ================= ADD PERSON TO MOVIE ================= */
+addForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    const movieTitle = "{{ movie.title }}";
+    const personName = selectedPersonInput.value;
+    const role = roleSelect.value;
+    const alias = document.getElementById("alias-input").value;
+
+    const res = await fetch("/admin/add_person_to_movie", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({movie: movieTitle, person: personName, role: role, alias: alias})
+    });
+    const data = await res.json();
+    alert(data.message);
+    if (data.success) location.reload();
+});
 </script>
 
 </body>

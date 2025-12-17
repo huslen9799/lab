@@ -49,7 +49,7 @@ conn = Neo4jConnection(
     uri="neo4j://127.0.0.1:7687",
     user="neo4j",
     pwd="12345678",
-    database="neo4j-2025-12-05t09-39-32"  # ✅ таны DB нэр
+    database="neo4j1"  # ✅ таны DB нэр
 )
 # ----------------------------
 # Users
@@ -72,13 +72,13 @@ def index():
     # Нэрээр шүүх
     if query_text:
         safe_text = query_text.replace("'", "\\'")
-        query += f" AND toLower(m.title) CONTAINS toLower('{safe_text}')"
+        query += " AND toLower(m.title) CONTAINS toLower('{safe_text}')"
 
     # Он дээр шүүх
     if year_from.isdigit(): 
-        query += f" AND m.released >= {year_from}"
+        query += " AND m.released >= {year_from}"
     if year_to.isdigit():
-        query += f" AND m.released <= {year_to}"
+        query += " AND m.released <= {year_to}"
 
     query += " RETURN m.title AS title, m.released AS year, m.image AS image ORDER BY m.released DESC LIMIT 50"
 
@@ -116,7 +116,7 @@ def login():
                 error = "Нууц үг буруу байна!"
         else:
             # 2️⃣ Neo4j-аас бусад хэрэглэгч шалгах
-            query = f"""
+            query = """
                 MATCH (u:User {{username: '{username.replace("'", "\\'")}'}})
                 RETURN u.password AS password, u.role AS role
             """
@@ -156,7 +156,7 @@ def register():
             return render_template("register.html", error="Нууц үг таарахгүй!")
 
         # Давхар хэрэглэгч байгаа эсэх
-        check = conn.query(f"""
+        check = conn.query("""
             MATCH (u:User {{username: '{username.replace("'", "\\'")}'}})
             RETURN u
         """)
@@ -165,7 +165,7 @@ def register():
             return render_template("register.html", error="Хэрэглэгчийн нэр давхцаж байна!")
 
         # Хэрэглэгч үүсгэх (default role = member)
-        conn.query(f"""
+        conn.query("""
             CREATE (u:User {{
                 username:'{username.replace("'", "\\'")}', 
                 password:'{password.replace("'", "\\'")}',
@@ -188,7 +188,7 @@ def forgot_password():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
 
-        user = conn.query(f"""
+        user = conn.query("""
             MATCH (u:User {{username:'{username.replace("'", "\\'")}'}})
             RETURN u
         """)
@@ -215,7 +215,7 @@ def reset_password_direct(username):
         if new_password != confirm:
             error = "Нууц үг таарахгүй байна!"
         else:
-            conn.query(f"""
+            conn.query("""
                 MATCH (u:User {{username:'{username.replace("'", "\\'")}'}})
                 SET u.password = '{new_password.replace("'", "\\'")}'
             """)
@@ -247,7 +247,7 @@ def movie_detail(title):
         uri="neo4j://127.0.0.1:7687",
         user="neo4j",
         pwd="12345678",
-        database="neo4j-2025-12-05t09-39-32"
+        database="neo4j1"
     )
 
     # Кино мэдээлэл ба баг
@@ -361,16 +361,29 @@ def get_movie_info(title):
 
 
 
-@app.route("/search_person")
+@app.route("/admin/search_person")
 def search_person():
-    q = request.args.get("q", "")
-    results = [p['name'] for p in conn.query(f"""
-        MATCH (p:Person)
-        WHERE p.name CONTAINS '{q}'
-        RETURN p.name AS name
-        ORDER BY p.name
-    """)]
-    return jsonify({"results": results})
+    if session.get("role") != "admin":
+        return jsonify([])
+
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify([])
+
+    q_safe = q.replace("'", "\\'")
+
+    query = f"""
+    MATCH (p:Person)
+    WHERE toLower(p.name) CONTAINS toLower('{q_safe}')
+    RETURN p.name AS name
+    LIMIT 10
+    """
+
+    result = conn.query(query)
+
+    people = [{"name": r["name"]} for r in result] if result else []
+    return jsonify(people)
+
 @app.route("/add_member_quick", methods=["POST"])
 def add_member_quick():
     person_name = request.form.get("person", "").strip()
@@ -390,7 +403,7 @@ def add_member_quick():
             alias_list = [person_name]
 
     try:
-        query = f"""
+        query = """
         MERGE (p:Person {{name:$person_name}})
         MERGE (m:Movie {{title:$movie_title}})
         MERGE (p)-[r:{role}]->(m)
@@ -398,13 +411,13 @@ def add_member_quick():
         """
         conn.query(query, {"person_name": person_name, "movie_title": movie_title, "alias_list": alias_list})
 
-        return jsonify({"success": True, "message": f"{person_name} кино багт амжилттай нэмэгдлээ.", "alias": alias_list})
+        return jsonify({"success": True, "message": "{person_name} кино багт амжилттай нэмэгдлээ.", "alias": alias_list})
     except Exception as e:
-        return jsonify({"success": False, "message": f"Алдаа гарлаа: {str(e)}"})
+        return jsonify({"success": False, "message": "Алдаа гарлаа: {str(e)}"})
 
 def add_person_to_movie(movie_title, person_name, role, alias_list=None):
     alias_list = alias_list or []
-    query = f"""
+    query = """
     MERGE (p:Person {{name: $person_name}})
     MERGE (m:Movie {{title: $movie_title}})
     MERGE (p)-[r:{role}]->(m)
@@ -440,23 +453,31 @@ def update_alias():
 # ----------------------------
 @app.route("/movie/<title>/review", methods=['POST'])
 def add_review(title):
+    # Нэвтрээгүй хэрэглэгчийг хаах
     if 'username' not in session or session.get('role') == 'guest':
         return "Та нэвтэрсэн байх шаардлагатай!"
-    summary = request.form.get('summary', '').replace("'", "\\'")
+
+    # Формоос утгыг авна
+    summary = request.form.get('summary', '').strip()
     try:
-        rating = int(request.form.get('rating', '0'))
+        rating = int(request.form.get('rating', 0))
     except ValueError:
         rating = 0
-    username = session['username'].replace("'", "\\'")
-    title_safe = title.replace("'", "\\'")
-    query = f"""
-    MERGE (u:User {{username: '{username}'}})
-    MERGE (m:Movie {{title: '{title_safe}'}})
+
+    username = session['username']
+
+    # Neo4j query - параметр ашиглах
+    query = """
+    MERGE (u:User {username:$username})
+    MERGE (m:Movie {title:$title})
     MERGE (u)-[r:REVIEWED]->(m)
-    SET r.summary = '{summary}', r.rating = {rating}
+    SET r.summary = $summary, r.rating = $rating
     """
-    conn.query(query)
+    conn.query(query, {"username": username, "title": title, "summary": summary, "rating": rating})
+
+    # Кино detail рүү буцах
     return redirect(url_for('movie_detail', title=title))
+
 
 # ----------------------------
 # Admin: Add Movie / Person / Movie Member
@@ -464,18 +485,35 @@ def add_review(title):
 @app.route("/admin/movie/add", methods=['GET', 'POST'])
 def add_movie():
     if session.get('role') != 'admin':
-        return "Зөвшөөрөгдсөнгүй!"
+        return "Зөвшөөрөгдсөнгүй!", 403
+
     if request.method == 'POST':
-        title = request.form.get('title', '').replace("'", "\\'")
-        released = request.form.get('released', '0')
+        # Формоос авна
+        title = request.form.get('title', '').strip()
+        released = request.form.get('released', '0').strip()
+        try:
+            released = int(released)
+        except ValueError:
+            released = 0
+
+        # Зураг хадгалах
         img_file = request.files.get('image')
-        img_name = img_file.filename if img_file else 'default.jpg'
-        if img_file:
+        img_name = 'default.jpg'
+        if img_file and img_file.filename:
+            img_name = img_file.filename
             img_file.save(os.path.join(app.config['MOVIE_UPLOAD'], img_name))
-        query = f"CREATE (m:Movie {{title: '{title}', released: {released}, image: '{img_name}'}})"
-        conn.query(query)
+
+        # Neo4j-д нэмэх (параметр ашиглах)
+        query = """
+        MERGE (m:Movie {title:$title})
+        SET m.released = $released, m.image = $image
+        """
+        conn.query(query, {"title": title, "released": released, "image": img_name})
+
         return redirect(url_for('index'))
+
     return render_template("admin_add_movie.html")
+
 
 
 @app.route("/admin/movie/<title>/add_member_full", methods=['GET', 'POST'])
@@ -487,7 +525,7 @@ def add_member_full(title):
         # Autocomplete-аас ирсэн POST
         person_name = request.form.get('person')
         role = request.form.get('role')
-        query = f"""
+        query = """
         MATCH (m:Movie {{title: '{title}'}}), (p:Person {{name: '{person_name}'}})
         MERGE (p)-[:{role.upper()}]->(m)
         """
@@ -518,7 +556,7 @@ def add_person():
             image_file.save(os.path.join(app.config['PERSON_UPLOAD'], image_name))
         
         # MERGE ашиглаж ижил нэртэй хүн давхар үүсгэхээс сэргийлнэ
-        query = f"""
+        query = """
         MERGE (p:Person {{name: '{name}'}})
         SET p.image = '{image_name}'
         """
@@ -531,21 +569,20 @@ def add_person():
 # ----------------------------
 @app.route("/person/<name>")
 def person_detail(name):
-    name_safe = name.replace("'", "\\'")
-    query = f"""
-        MATCH (p:Person {{name: '{name_safe}'}})
+    query = """
+        MATCH (p:Person {name: $name})
         OPTIONAL MATCH (p)-[:ACTED_IN]->(m1:Movie)
         OPTIONAL MATCH (p)-[:DIRECTED]->(m2:Movie)
         OPTIONAL MATCH (p)-[:WROTE]->(m3:Movie)
         OPTIONAL MATCH (p)-[:PRODUCED]->(m4:Movie)
-
         RETURN p,
-        collect(DISTINCT m1) AS acted_movies,
-        collect(DISTINCT m2) AS directed_movies,
-        collect(DISTINCT m3) AS written_movies,
-        collect(DISTINCT m4) AS produced_movies
+            collect(DISTINCT m1) AS acted_movies,
+            collect(DISTINCT m2) AS directed_movies,
+            collect(DISTINCT m3) AS written_movies,
+            collect(DISTINCT m4) AS produced_movies
     """
-    result = conn.query(query)
+
+    result = conn.query(query, {"name": name})
 
     if not result:
         return "Хүн олдсонгүй", 404
@@ -567,14 +604,12 @@ def person_detail(name):
 # People pages with filter (function нэг удаа тодорхойлсон)
 # ----------------------------
 def people_by_role(role, title):
-
     role_map = {
         "actor": "ACTED_IN",
         "director": "DIRECTED",
         "writer": "WROTE",
         "producer": "PRODUCED"
     }
-
     rel = role_map.get(role.lower())
     if not rel:
         return "Invalid role", 400
@@ -583,10 +618,7 @@ def people_by_role(role, title):
     born_from = request.args.get("born_from", "").strip()
     born_to = request.args.get("born_to", "").strip()
 
-    query = f"""
-    MATCH (p:Person)-[:{rel}]->(m:Movie)
-    WHERE 1=1
-    """
+    query = f"MATCH (p:Person)-[:{rel}]->(m:Movie) WHERE 1=1"
 
     if name_filter:
         safe = name_filter.replace("'", "\\'")
@@ -594,7 +626,6 @@ def people_by_role(role, title):
 
     if born_from.isdigit():
         query += f" AND p.born >= {born_from}"
-
     if born_to.isdigit():
         query += f" AND p.born <= {born_to}"
 
@@ -605,9 +636,7 @@ def people_by_role(role, title):
     LIMIT 50
     """
 
-    people = conn.query(query)
-    people = [dict(p) for p in people]
-
+    people = [dict(p) for p in conn.query(query)]
     return render_template("people_list.html", people=people, title=title, role=session.get("role", "guest"))
 
 @app.route("/admin/movie/<title>/add_member_full2", methods=['GET', 'POST'])
@@ -618,7 +647,7 @@ def add_member_full2(title):
     if request.method == 'POST':
         person_name = request.form.get('person')
         role = request.form.get('role')
-        query = f"""
+        query = """
         MATCH (m:Movie {{title: '{title}'}}), (p:Person {{name: '{person_name}'}})
         MERGE (p)-[:{role.upper()}]->(m)
         """
@@ -652,6 +681,7 @@ def writers():
 def producers():
     return people_by_role("producer", "Продюсер")
 
+
 # ----------------------------
 # Admin: Edit Person
 # ----------------------------
@@ -675,14 +705,14 @@ def edit_person(name):
             img_file.save(os.path.join(app.config['PERSON_UPLOAD'], img_name))
         else:
             # Keep old image
-            old = conn.query(f"""
+            old = conn.query("""
                 MATCH (p:Person {{name:'{name_safe}'}})
                 RETURN p.image AS image
             """)
             img_name = old[0]["image"] if old else "default.jpg"
 
         # Update Neo4j
-        query = f"""
+        query = """
         MATCH (p:Person {{name:'{name_safe}'}})
         SET p.name='{new_name}', p.born={born}, p.role='{role}', p.image='{img_name}'
         """
@@ -691,7 +721,7 @@ def edit_person(name):
         return redirect(url_for("person_detail", name=new_name))
 
     # GET — load data
-    result = conn.query(f"""
+    result = conn.query("""
         MATCH (p:Person {{name:'{name_safe}'}})
         RETURN p.name AS name, p.born AS born, p.role AS role, p.image AS image
     """)
@@ -708,7 +738,7 @@ def delete_person(name):
         return "Access Denied", 403
 
     name_safe = name.replace("'", "\\'")
-    conn.query(f"MATCH (p:Person {{name:'{name_safe}'}}) DETACH DELETE p")
+    conn.query("MATCH (p:Person {{name:'{name_safe}'}}) DETACH DELETE p")
     return redirect(url_for('index'))
 
 # ----------------------------
@@ -719,7 +749,7 @@ def reviewers():
     name_filter = request.args.get('name', '').strip()
     query = "MATCH (u:User)-[r:REVIEWED]->(m:Movie) RETURN u.username AS name, count(r) AS reviews ORDER BY u.username LIMIT 50"
     if name_filter:
-        query = f"""
+        query = """
         MATCH (u:User)-[r:REVIEWED]->(m:Movie)
         WHERE toLower(u.username) CONTAINS toLower('{name_filter.replace('\'', '\\\'')}')
         RETURN u.username AS name, count(r) AS reviews ORDER BY u.username LIMIT 50
@@ -739,14 +769,15 @@ def delete_movie(title):
     if session.get("role") != "admin":
         return {"success": False, "message": "Access Denied"}, 403
 
-    title_safe = title.replace("'", "\\'")  # энгийн escaping
-
     try:
-        # Neo4j query ашиглаж устгах
-        conn.query(f"MATCH (m:Movie {{title:'{title_safe}'}}) DETACH DELETE m")
+        conn.query(
+            "MATCH (m:Movie {title:$title}) DETACH DELETE m",
+            {"title": title}
+        )
         return {"success": True, "message": f"'{title}' кино устгагдлаа."}
     except Exception as e:
         return {"success": False, "message": str(e)}
+
 
 
 
@@ -756,36 +787,54 @@ def edit_movie(title):
     if session.get("role") != "admin":
         return "Access Denied", 403
 
-    title_safe = title.replace("'", "\\'")
-
+    # ---------- POST ----------
     if request.method == "POST":
-        new_title = request.form.get("title").replace("'", "\\'")
-        released = request.form.get("released")
+        new_title = request.form.get("title")
+        released = int(request.form.get("released"))
         img_file = request.files.get("image")
 
         if img_file and img_file.filename:
             img_name = img_file.filename
             img_file.save(os.path.join(app.config['MOVIE_UPLOAD'], img_name))
         else:
-            result = conn.query(f"MATCH (m:Movie {{title:'{title_safe}'}}) RETURN m.image AS image")
-            img_name = result[0]['image'] if result else 'default.jpg'
+            img_res = conn.query(
+                "MATCH (m:Movie {title:$title}) RETURN m.image AS image",
+                {"title": title}
+            )
+            img_name = img_res[0]["image"] if img_res else "default.jpg"
 
-        query = f"""
-            MATCH (m:Movie {{title:'{title_safe}'}})
-            SET m.title='{new_title}', m.released={released}, m.image='{img_name}'
+        conn.query(
+            """
+            MATCH (m:Movie {title:$old_title})
+            SET m.title=$new_title,
+                m.released=$released,
+                m.image=$image
+            """,
+            {
+                "old_title": title,
+                "new_title": new_title,
+                "released": released,
+                "image": img_name
+            }
+        )
+
+        return redirect(url_for("movie_detail", title=new_title))
+
+    # ---------- GET ----------
+    result = conn.query(
         """
-        conn.query(query)
-        return redirect(url_for('movie_detail', title=new_title))
+        MATCH (m:Movie {title:$title})
+        RETURN m.title AS title,
+               m.released AS released,
+               m.image AS image
+        """,
+        {"title": title}
+    )
 
-    # GET request
-    result = conn.query(f"""
-        MATCH (m:Movie {{title:'{title_safe}'}})
-        RETURN m.title AS title, m.released AS released, m.image AS image
-    """)
     if not result:
-        return "Movie not found"
+        return "Movie not found", 404
 
-    movie = result[0]  # ✅ Зөв тодорхойлж байна
+    movie = result[0]
     return render_template("admin_edit_movie.html", movie=movie)
 
 

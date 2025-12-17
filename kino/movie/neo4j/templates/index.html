@@ -25,82 +25,199 @@
 <link href="{{ url_for('static', filename='css/responsive.css') }}" rel="stylesheet" media="only screen and (max-width: 1200px)"/>
 
 <style>
-/* Red-Black Dark Theme Overrides */
+/* ==============================
+   Red-Black Dark Theme
+============================== */
+
+/* Body & Typography */
 body {
-    background-color: #ffffff !important;
-    color: #ffffff;
-}
-.navbar-dark {
-    background-color: #7d3de6;
-}
-.navbar-dark .navbar-nav .nav-link {
-    color: #f0f0f0;
-}
-.navbar-dark .navbar-nav .nav-link.text-warning {
-    color: #ff4d4d !important; /* Улаан өнгө */
-}
-.navbar-dark .navbar-text {
-    color: #f0f0f0;
-}
-.section-header, .section-footer, .section-pagetop, .section-content {
     background-color: #202020;
-}
-.card {
-    background-color: #363636;
-    color: #f0f0f0;
-    border: none;
-}
-.card-header {
-    background-color: #363636;
-    color: #f0f0f0;
-}
-.card-product-grid .img-wrap {
-    background-color: #363636;
-}
-.btn-primary {
-    background-color: #7d3de6;
-    border-color: #000000;
-    color: #fff;
-}
-.btn-primary:hover {
-    background-color: #3e1357;
-    border-color: #000000;
-}
-input, textarea {
-    background-color: #2a2a2a;
-    color: #f0f0f0;
-    border: 1px solid #444;
-}
-input::placeholder {
-    color: #bbb;
-}
-.price {
-    color: #7dbdbd;
-}
-.title {
-    color: #ffffff !important;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.title :hover{
-    color: cadetblue;
+a {
+    color: #ff4d4d;
+    text-decoration: none;
 }
-.title-page {
-    color: #7d3de6;
+
+a:hover {
+    color: #ff1a1a;
+    text-decoration: underline;
 }
-.badge {
-    background-color: #ffffff;
-    color: #fff;
+
+/* Navbar */
+.navbar-dark {
+    background-color: #ff4d4d;
 }
+
+.navbar-dark .navbar-nav .nav-link {
+    color: #ffffff;
+}
+
+.navbar-dark .navbar-nav .nav-link.text-warning {
+    color: #ff0000 !important;
+}
+
+.navbar-dark .navbar-text {
+    color: #ffffff;
+}
+
+/* Sections */
+.section-header, .section-footer, .section-pagetop, .section-content {
+    background-color: #202020;
+    color: #ffffff;
+}
+
+/* Cards */
+.card {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+}
+
+.card-header {
+    background-color: #2a2a2a;
+    color: #ff4d4d;
+    font-weight: bold;
+}
+
+.card-product-grid {
+    transition: all 0.3s;
+    border-radius: 8px;
+}
+
 .card-product-grid:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(109, 86, 173, 0.5);
-    transition: all 0.3s;
+    box-shadow: 0 8px 20px rgba(255, 77, 77, 0.5);
 }
-.logo{
-    height: 110px;
-    width: 50px;
+
+.card-product-grid .img-wrap {
+    background-color: #2a2a2a;
+    padding: 10px;
+    text-align: center;
+}
+
+.card-product-grid img {
+    max-width: 100%;
+    border-radius: 6px;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #ff4d4d;
+    border-color: #ff1a1a;
+    color: #fff;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-primary:hover {
+    background-color: #ff1a1a;
+    border-color: #ff0000;
+    color: #fff;
+}
+
+.btn-outline-light {
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+.btn-outline-light:hover {
+    background-color: #ff4d4d;
+    border-color: #ff4d4d;
+    color: #fff;
+}
+
+/* Inputs */
+input, textarea, select {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    border: 1px solid #ff4d4d;
+    border-radius: 5px;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #ff9999;
+}
+
+/* Titles */
+.title {
+    color: #ff4d4d !important;
+    font-weight: bold;
+}
+
+.title:hover {
+    color: #ff1a1a;
+    transition: color 0.3s;
+}
+
+.title-page {
+    color: #ff4d4d;
+    font-weight: bold;
+}
+
+.price {
+    color: #ff9999;
+    font-weight: bold;
+}
+
+/* Badges */
+.badge {
+    background-color: #ff4d4d;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 4px 10px;
+}
+
+/* Footer */
+footer {
+    background-color: #202020;
+    color: #ffffff;
+    padding: 20px 0;
+    text-align: center;
+    border-top: 1px solid #ff4d4d;
+}
+
+/* Links inside cards */
+.card a {
+    color: #ff4d4d;
+}
+
+.card a:hover {
+    color: #ff1a1a;
+}
+
+/* Misc */
+hr {
+    border-color: #ff4d4d;
+}
+
+.dropdown-menu {
+    background-color: #2a2a2a;
+    color: #ffffff;
+}
+
+.dropdown-item {
+    color: #ffffff;
+}
+
+.dropdown-item:hover {
+    background-color: #ff4d4d;
+    color: #fff;
+}
+
+/* Sidebar filter */
+.filter-group .card-body input {
+    width: 100%;
 }
 </style>
+
 
 </head>
 <body>
