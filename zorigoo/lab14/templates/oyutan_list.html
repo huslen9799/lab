@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="m-0">Оюутан</h3>
+  <a class="btn btn-primary" href="{{ url_for('oyutan_add') }}">Шинэ оюутан нэмэх</a>
+</div>
+
+<table class="table table-bordered table-striped bg-white">
+  <thead class="table-secondary">
+    <tr>
+      <th>#</th>
+      <th>Оюутны код</th>
+      <th>Овог</th>
+      <th>Нэр</th>
+      <th>Хүйс</th>
+      <th>Элсэлт</th>
+      <th>Мэргэжил</th>
+      <th style="width:140px;">Үйлдэл</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td>{{ r.id }}</td>
+      <td>{{ r.code }}</td>
+      <td>{{ r.ovog }}</td>
+      <td>{{ r.ner }}</td>
+      <td>{{ r.huis }}</td>
+      <td>{{ r.elselt_ognoo }}</td>
+      <td>{{ r.mergejil }}</td>
+      <td>
+        <a class="btn btn-sm btn-warning" href="{{ url_for('oyutan_edit', id=r.id) }}">Засах</a>
+        <a class="btn btn-sm btn-danger" href="{{ url_for('oyutan_delete', id=r.id) }}"
+           onclick="return confirm('Устгах уу?')">Устгах</a>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="8" class="text-center text-muted">Мэдээлэл алга</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

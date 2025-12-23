@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block content %}
+<h3>{{ "Оюутан нэмэх" if mode=="add" else "Оюутан засах" }}</h3>
+
+<form method="post" class="bg-white p-3 border rounded" style="max-width:720px;">
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label class="form-label">Оюутны код</label>
+      <input name="code" class="form-control" required value="{{ row.code if row else '' }}">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Овог</label>
+      <input name="ovog" class="form-control" required value="{{ row.ovog if row else '' }}">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Нэр</label>
+      <input name="ner" class="form-control" required value="{{ row.ner if row else '' }}">
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label d-block">Хүйс</label>
+      {% set h = (row.huis if row else 'Эр') %}
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="huis" value="Эр" {{ 'checked' if h=='Эр' else '' }}>
+        <label class="form-check-label">Эр</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="huis" value="Эм" {{ 'checked' if h=='Эм' else '' }}>
+        <label class="form-check-label">Эм</label>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Элсэлтийн огноо</label>
+      <input type="date" name="elselt_ognoo" class="form-control" required value="{{ row.elselt_ognoo if row else '' }}">
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Мэргэжил</label>
+      <select name="mergejil" class="form-select" required>
+        {% for m in mergejil_list %}
+          <option value="{{ m }}" {{ 'selected' if row and row.mergejil==m else '' }}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="mt-3 d-flex gap-2">
+    <button class="btn btn-primary" type="submit">{{ "Нэмэх" if mode=="add" else "Хадгалах" }}</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('oyutan_list') }}">Буцах</a>
+  </div>
+</form>
+{% endblock %}

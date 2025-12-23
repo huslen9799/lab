@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %}Хичээл{% endblock %}
+
+{% block content %}
+<h3>{{ "Хичээл нэмэх" if mode=="add" else "Хичээл засах" }}</h3>
+
+<form method="post" class="bg-white p-3 border rounded" style="max-width:800px;">
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label class="form-label">Хичээлийн код</label>
+      <input name="code" class="form-control" required value="{{ row.code if row else '' }}">
+    </div>
+
+    <div class="col-md-5">
+      <label class="form-label">Хичээлийн нэр</label>
+      <input name="ner" class="form-control" required value="{{ row.ner if row else '' }}">
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label">Кредит</label>
+      <input name="credit" type="number" min="1" max="10" class="form-control" required value="{{ row.credit if row else 3 }}">
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label">Хичээлийн төрөл</label>
+      <select name="turul" class="form-select" required>
+        {% for t in turul_list %}
+          <option value="{{ t }}" {{ 'selected' if row and row.turul==t else '' }}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-12">
+      <label class="form-label">Өмнөх холбоо</label>
+      <input name="umnuh_holboo" class="form-control"
+             value="{{ row.umnuh_holboo if row else '' }}"
+             placeholder="Ж: SW1001">
+    </div>
+  </div>
+
+  <div class="mt-3 d-flex gap-2">
+    <button class="btn btn-primary" type="submit">{{ "Нэмэх" if mode=="add" else "Хадгалах" }}</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('hiceel_list') }}">Буцах</a>
+  </div>
+</form>
+{% endblock %}

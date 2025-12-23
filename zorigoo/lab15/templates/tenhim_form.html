@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %}Тэнхим{% endblock %}
+{% block content %}
+<h2 class="text-center">{{ "Тэнхим нэмэх" if mode=="add" else "Тэнхим засах" }}</h2>
+
+<form method="post" class="mt-3" style="max-width:520px;margin:0 auto;">
+  <div class="mb-2">
+    <label class="form-label">Нэр</label>
+    <input name="ner" class="form-control" required value="{{ row.ner if row else '' }}">
+  </div>
+  <button class="btn btn-primary">{{ "Нэмэх" if mode=="add" else "Хадгалах" }}</button>
+  <a class="btn btn-outline-secondary" href="{{ url_for('tenhim_list') }}">Буцах</a>
+</form>
+{% endblock %}

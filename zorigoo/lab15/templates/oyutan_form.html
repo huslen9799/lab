@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+{% block title %}Оюутан{% endblock %}
+{% block content %}
+<h2 class="text-center">{{ "Оюутан нэмэх" if mode=="add" else "Оюутан засах" }}</h2>
+
+<form method="post" enctype="multipart/form-data" class="mt-3" style="max-width:900px;margin:0 auto;">
+  <div class="row g-2">
+    <div class="col-md-3">
+      <label class="form-label">Код</label>
+      <input name="code" class="form-control" required value="{{ row.code if row else '' }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Овог</label>
+      <input name="ovog" class="form-control" required value="{{ row.ovog if row else '' }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Нэр</label>
+      <input name="ner" class="form-control" required value="{{ row.ner if row else '' }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label d-block">Хүйс</label>
+      {% set h = (row.huis if row else 'Эр') %}
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="huis" value="Эр" {{ 'checked' if h=='Эр' else '' }}>
+        <label class="form-check-label">Эр</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="huis" value="Эм" {{ 'checked' if h=='Эм' else '' }}>
+        <label class="form-check-label">Эм</label>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Элсэлтийн огноо</label>
+      <input type="date" name="elselt_ognoo" class="form-control" required value="{{ row.elselt_ognoo if row else '' }}">
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Тэнхим</label>
+      <select name="tenhim_id" class="form-select" required>
+        {% for t in tenhim %}
+          <option value="{{ t.id }}" {{ 'selected' if row and row.tenhim_id==t.id else '' }}>{{ t.ner }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Зураг</label>
+      <input type="file" name="zurag" class="form-control" accept=".png,.jpg,.jpeg,.gif,.webp">
+      <div class="form-text">png/jpg/jpeg/gif/webp</div>
+
+      {% if mode == "edit" %}
+        <div class="mt-2">
+          <b>Одоогийн зураг:</b>
+          {% if row.zurag %}
+            <img class="avatar ms-2" style="width:50px;height:50px;"
+                 src="{{ url_for('static', filename='uploads/' ~ row.zurag) }}" alt="current">
+          {% else %}
+            <span class="text-muted ms-2">Зураг байхгүй</span>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <button class="btn btn-primary">{{ "Нэмэх" if mode=="add" else "Хадгалах" }}</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('oyutan_list') }}">Буцах</a>
+  </div>
+</form>
+{% endblock %}

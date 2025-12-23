@@ -1,0 +1,123 @@
+{% extends "layout.html" %}
+{% block title %}Хичээл жагсаалт{% endblock %}
+
+{% set next_order = 'desc' if order=='asc' else 'asc' %}
+{% set base_qs = 'per_page=' ~ per_page ~ '&q=' ~ (q|urlencode) ~ '&turul=' ~ (turul|urlencode) %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="m-0">Хичээлийн жагсаалт</h3>
+  <a class="btn btn-primary" href="{{ url_for('hiceel_add') }}">Шинэ хичээл нэмэх</a>
+</div>
+
+<form class="row g-2 mb-3" method="get" action="{{ url_for('hiceel_list') }}">
+  <div class="col-md-4">
+    <input class="form-control" name="q" value="{{ q }}" placeholder="Хичээлийн нэрээр хайх (LIKE)...">
+  </div>
+
+  <div class="col-md-3">
+    <select class="form-select" name="turul">
+      <option value="">Бүх төрөл</option>
+      {% for t in turul_list %}
+        <option value="{{ t }}" {{ 'selected' if turul==t else '' }}>{{ t }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-md-2">
+    <select class="form-select" name="per_page">
+      {% for n in [5,10,15,20,30] %}
+        <option value="{{ n }}" {{ 'selected' if per_page==n else '' }}>{{ n }}/хуудас</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <input type="hidden" name="order" value="{{ order }}">
+
+  <div class="col-md-3 d-flex gap-2">
+    <button class="btn btn-success w-100" type="submit">Хайх/Шүүх</button>
+    <a class="btn btn-outline-secondary w-100" href="{{ url_for('hiceel_list') }}">Reset</a>
+  </div>
+</form>
+
+<div class="small text-muted mb-2">Нийт: <b>{{ total }}</b> бичлэг</div>
+
+<table class="table table-bordered table-striped bg-white align-middle">
+  <thead class="table-dark">
+    <tr>
+      <th style="width:70px;">
+        <a class="text-white text-decoration-none"
+           href="{{ url_for('hiceel_list') }}?{{ base_qs }}&sort=id&order={{ next_order }}&page=1">#</a>
+      </th>
+
+      <th>
+        <a class="text-white text-decoration-none"
+           href="{{ url_for('hiceel_list') }}?{{ base_qs }}&sort=code&order={{ next_order }}&page=1">Хичээлийн код</a>
+      </th>
+
+      <th>
+        <a class="text-white text-decoration-none"
+           href="{{ url_for('hiceel_list') }}?{{ base_qs }}&sort=ner&order={{ next_order }}&page=1">Хичээлийн нэр</a>
+        {% if sort=='ner' %}<span class="ms-1">{{ '▲' if order=='asc' else '▼' }}</span>{% endif %}
+      </th>
+
+      <th style="width:90px;">
+        <a class="text-white text-decoration-none"
+           href="{{ url_for('hiceel_list') }}?{{ base_qs }}&sort=credit&order={{ next_order }}&page=1">Кредит</a>
+      </th>
+
+      <th>Өмнөх холбоо</th>
+
+      <th style="width:150px;">
+        <a class="text-white text-decoration-none"
+           href="{{ url_for('hiceel_list') }}?{{ base_qs }}&sort=turul&order={{ next_order }}&page=1">Хичээлийн төрөл</a>
+      </th>
+
+      <th style="width:140px;">Үйлдэл</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.id }}</td>
+      <td>{{ r.code }}</td>
+      <td>{{ r.ner }}</td>
+      <td>{{ r.credit }}</td>
+      <td>{{ r.umnuh_holboo or '-' }}</td>
+      <td>{{ r.turul }}</td>
+      <td>
+        <a class="btn btn-sm btn-warning" href="{{ url_for('hiceel_edit', id=r.id) }}">Засах</a>
+        <a class="btn btn-sm btn-danger" href="{{ url_for('hiceel_delete', id=r.id) }}"
+           onclick="return confirm('Устгах уу?')">Устгах</a>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="text-center text-muted">Мэдээлэл алга</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{# Pagination: 1..N (эсвэл хүсвэл богиносгож болно) #}
+<nav aria-label="Pagination">
+  <ul class="pagination justify-content-center">
+    <li class="page-item {{ 'disabled' if page<=1 else '' }}">
+      <a class="page-link"
+         href="{{ url_for('hiceel_list') }}?{{ base_qs }}&sort={{ sort }}&order={{ order }}&page={{ page-1 }}">&laquo;</a>
+    </li>
+
+    {% for p in range(1, total_pages+1) %}
+      <li class="page-item {{ 'active' if p==page else '' }}">
+        <a class="page-link"
+           href="{{ url_for('hiceel_list') }}?{{ base_qs }}&sort={{ sort }}&order={{ order }}&page={{ p }}">{{ p }}</a>
+      </li>
+    {% endfor %}
+
+    <li class="page-item {{ 'disabled' if page>=total_pages else '' }}">
+      <a class="page-link"
+         href="{{ url_for('hiceel_list') }}?{{ base_qs }}&sort={{ sort }}&order={{ order }}&page={{ page+1 }}">&raquo;</a>
+    </li>
+  </ul>
+</nav>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %}Багш{% endblock %}
+{% block content %}
+<h2 class="text-center">Багш</h2>
+<a class="link-add" href="{{ url_for('bagsh_add') }}">Шинээр багш нэмэх</a>
+<div class="subline">Багш нарын жагсаалт</div>
+
+<table class="table table-bordered align-middle mt-2">
+  <thead>
+    <tr>
+      <th>Код</th><th>Овог</th><th>Нэр</th><th>Хүйс</th><th>Ажилд орсон</th>
+      <th>Тэнхим</th><th>Албан тушаал</th><th>Эрдмийн зэрэг</th>
+      <th style="width:110px;">Үйлдэл</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td>{{ r.code }}</td>
+      <td>{{ r.ovog }}</td>
+      <td>{{ r.ner }}</td>
+      <td>{{ r.huis }}</td>
+      <td>{{ r.ajild_orson }}</td>
+      <td>{{ r.tenhim_ner }}</td>
+      <td>{{ r.alban_ner }}</td>
+      <td>{{ r.zereg_ner }}</td>
+      <td class="action text-center">
+        <a href="{{ url_for('bagsh_edit', id=r.id) }}"><i class="fa-solid fa-pen-to-square"></i></a>
+        <a href="{{ url_for('bagsh_delete', id=r.id) }}" onclick="return confirm('Устгах уу?')"><i class="fa-solid fa-trash"></i></a>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="9" class="text-center text-muted">Мэдээлэл алга</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
